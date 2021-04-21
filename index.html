@@ -30,13 +30,17 @@
     margin-bottom: 1rem;
   }
 
+  .files {
+    margin-bottom: 1rem;
+  }
+
   textarea {
     width: 100%;
     height: 100px;
     box-sizing: border-box;
   }
 
-  input {
+  #width, #interval {
     width: 60px;
     margin-top: 0.5rem;
   }
@@ -45,7 +49,11 @@
     cursor: pointer;
     width: 100px;
     height: 30px;
-    margin-top: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  #list {
+    overflow: auto;
   }
 
   table {
@@ -74,8 +82,10 @@
     </a>
   </h1>
   <div class="form">
-    <div>
+    <div class="files">
       <textarea id="urls" placeholder="ここに動画のURLを入力（複数ある場合は改行区切り）"></textarea>
+      <div>ローカルにある動画から生成する場合はここから選択してください</div>
+      <input id="local-files" type="file" accept="video/*" multiple />
     </div>
     <div>
       <input type="number" id="interval" value="1" /> 秒ごとに生成
@@ -94,6 +104,7 @@ const ele = {
   interval: document.getElementById('interval'),
   width: document.getElementById('width'),
   urls: document.getElementById('urls'),
+  localFiles: document.getElementById('local-files'),
   indicator: document.getElementById('indicator'),
   button: document.getElementById('gen-btn'),
 };
@@ -136,6 +147,10 @@ const generateCanvas = (url, interval, width) =>
 
 const onGenerateClick = () => {
   const urls = ele.urls.value.trim().split('\n').filter(Boolean);
+  if (ele.localFiles.files.length) {
+    urls.push(...Array.from(ele.localFiles.files).map(file => URL.createObjectURL(file)));
+  }
+
   const width = ele.width.value ? Number(ele.width.value) : null;
   const interval = ele.interval.value ? Number(ele.interval.value) : null;
   if (!urls.length || !width || !interval) {
