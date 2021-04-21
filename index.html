@@ -176,7 +176,7 @@ const onGenerateClick = () => {
     ele.indicator.innerText = '';
 
     const itemNum = results.length;
-    const rows = Math.max(...results.map(result => result.elements.length));
+    const cols = Math.max(...results.map(result => result.elements.length));
 
     while (list.firstChild) {
       list.removeChild(list.firstChild);
@@ -186,15 +186,15 @@ const onGenerateClick = () => {
 
     const tr = table.insertRow(-1);
     tr.insertCell(-1); // 空の td
-    for(let rowIdx = 0; rowIdx < rows; rowIdx++) {
+    for (let colIdx = 0; colIdx < cols; colIdx++) {
       const span = document.createElement('span');
-      span.innerText = `${((rowIdx + 1) * interval).toFixed(1)}sec`;
+      span.innerText = `${((colIdx + 1) * interval).toFixed(1)}sec`;
       const td = tr.insertCell(-1);
       td.classList.add('sec');
       td.appendChild(span);
     }
 
-    for(let itemIdx = 0; itemIdx < itemNum; itemIdx++) {
+    for (let itemIdx = 0; itemIdx < itemNum; itemIdx++) {
       const tr = table.insertRow(-1);
 
       const span = document.createElement('span');
@@ -203,8 +203,8 @@ const onGenerateClick = () => {
       const fileNameTd = tr.insertCell(-1);
       fileNameTd.appendChild(span);
 
-      for(let rowIdx = 0; rowIdx < rows; rowIdx++) {
-        const canvas = results[itemIdx].elements[rowIdx];
+      for (let colIdx = 0; colIdx < cols; colIdx++) {
+        const canvas = results[itemIdx].elements[colIdx];
         const td = tr.insertCell(-1);
         td.classList.add('img');
         td.appendChild(canvas || document.createElement('span'));
