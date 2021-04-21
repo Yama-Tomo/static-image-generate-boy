@@ -109,7 +109,7 @@ const ele = {
   button: document.getElementById('gen-btn'),
 };
 
-const generateCanvas = (url, interval, width) =>
+const generateCanvas = (url, interval, width, progress) =>
   new Promise((resolve, reject) => {
     try {
       const elements = [];
@@ -128,6 +128,8 @@ const generateCanvas = (url, interval, width) =>
         elements.push(canvas);
 
         if ((video.currentTime + interval) <= video.duration) {
+          progress.current += 1;
+          ele.indicator.innerText = `Processing.... ${Math.round(progress.current / progress.total * 100)}%`;
           video.currentTime += interval;
         } else {
           // done task
@@ -137,6 +139,7 @@ const generateCanvas = (url, interval, width) =>
 
       video.onloadeddata = () => {
         video.currentTime = interval;
+        progress.total += Math.round(video.duration / interval);
       }
 
       video.addEventListener('error', reject);
@@ -159,7 +162,8 @@ const onGenerateClick = () => {
 
   ele.indicator.innerText = 'Processing....';
 
-  const tasks = urls.map(url => generateCanvas(url, interval, width));
+  const progress = { current: 0, total: 0 };
+  const tasks = urls.map(url => generateCanvas(url, interval, width, progress));
   Promise.all(tasks).then(elementsOfArray => {
     ele.indicator.innerText = '';
 
