@@ -65,6 +65,12 @@
     border: solid 1px #9b9b9b;
   }
 
+  span.title {
+    width: 150px;
+    overflow-wrap: break-word;
+    display: inline-block;
+  }
+
   td.sec {
     text-align: center;
   }
@@ -110,7 +116,7 @@ const ele = {
   button: document.getElementById('gen-btn'),
 };
 
-const generateCanvas = (url, interval, width, progress) =>
+const generateCanvas = (url, title, interval, width, progress) =>
   new Promise((resolve, reject) => {
     try {
       const elements = [];
@@ -125,6 +131,7 @@ const generateCanvas = (url, interval, width, progress) =>
         canvas.width = width < video.videoWidth ? width : video.videoWidth ;
         canvas.height = canvas.width * aspectRatio;
         canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.title = `${title} [${video.currentTime.toFixed(1)}sec]`;
 
         elements.push(canvas);
 
@@ -134,7 +141,7 @@ const generateCanvas = (url, interval, width, progress) =>
           video.currentTime += interval;
         } else {
           // done task
-          resolve(elements);
+          resolve({ elements, meta: { title } });
         }
       };
 
@@ -150,26 +157,26 @@ const generateCanvas = (url, interval, width, progress) =>
   });
 
 const onGenerateClick = () => {
-  const urls = ele.urls.value.trim().split('\n').filter(Boolean);
+  const files = ele.urls.value.trim().split('\n').filter(Boolean).map(url => ({ url, title: url }));
   if (ele.localFiles.files.length) {
-    urls.push(...Array.from(ele.localFiles.files).map(file => URL.createObjectURL(file)));
+    files.push(...Array.from(ele.localFiles.files).map(file => ({ url: URL.createObjectURL(file), title: file.name })));
   }
 
   const width = ele.width.value ? Number(ele.width.value) : null;
   const interval = ele.interval.value ? Number(ele.interval.value) : null;
-  if (!urls.length || !width || !interval) {
+  if (!files.length || !width || !interval) {
     return;
   }
 
   ele.indicator.innerText = 'Processing....';
 
   const progress = { current: 0, total: 0 };
-  const tasks = urls.map(url => generateCanvas(url, interval, width, progress));
-  Promise.all(tasks).then(elementsOfArray => {
+  const tasks = files.map(file => generateCanvas(file.url, file.title, interval, width, progress));
+  Promise.all(tasks).then(results => {
     ele.indicator.innerText = '';
 
-    const itemNum = elementsOfArray.length;
-    const rows = Math.max(...elementsOfArray.map(elements => elements.length));
+    const itemNum = results.length;
+    const rows = Math.max(...results.map(result => result.elements.length));
 
     while (list.firstChild) {
       list.removeChild(list.firstChild);
@@ -178,6 +185,7 @@ const onGenerateClick = () => {
     const table = document.createElement('table');
 
     const tr = table.insertRow(-1);
+    tr.insertCell(-1); // 空の td
     for(let rowIdx = 0; rowIdx < rows; rowIdx++) {
       const span = document.createElement('span');
       span.innerText = `${((rowIdx + 1) * interval).toFixed(1)}sec`;
@@ -188,8 +196,15 @@ const onGenerateClick = () => {
 
     for(let itemIdx = 0; itemIdx < itemNum; itemIdx++) {
       const tr = table.insertRow(-1);
+
+      const span = document.createElement('span');
+      span.classList.add('title');
+      span.innerText = results[itemIdx].meta.title;
+      const fileNameTd = tr.insertCell(-1);
+      fileNameTd.appendChild(span);
+
       for(let rowIdx = 0; rowIdx < rows; rowIdx++) {
-        const canvas = elementsOfArray[itemIdx][rowIdx];
+        const canvas = results[itemIdx].elements[rowIdx];
         const td = tr.insertCell(-1);
         td.classList.add('img');
         td.appendChild(canvas || document.createElement('span'));
