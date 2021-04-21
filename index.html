@@ -71,6 +71,7 @@
 
   td.img {
     background-color: #f7f7f7;
+    text-align: center;
   }
   </style>
 </head>
@@ -175,15 +176,19 @@ const onGenerateClick = () => {
     }
 
     const table = document.createElement('table');
+
+    const tr = table.insertRow(-1);
     for(let rowIdx = 0; rowIdx < rows; rowIdx++) {
-      const tr = table.insertRow(-1);
       const span = document.createElement('span');
       span.innerText = `${((rowIdx + 1) * interval).toFixed(1)}sec`;
       const td = tr.insertCell(-1);
       td.classList.add('sec');
       td.appendChild(span);
+    }
 
-      for(let itemIdx = 0; itemIdx < itemNum; itemIdx++) {
+    for(let itemIdx = 0; itemIdx < itemNum; itemIdx++) {
+      const tr = table.insertRow(-1);
+      for(let rowIdx = 0; rowIdx < rows; rowIdx++) {
         const canvas = elementsOfArray[itemIdx][rowIdx];
         const td = tr.insertCell(-1);
         td.classList.add('img');
