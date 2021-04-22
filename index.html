@@ -45,6 +45,10 @@
     margin-top: 0.5rem;
   }
 
+  #to-horizontal {
+    margin-top: 0.5rem;
+  }
+
   button {
     cursor: pointer;
     width: 100px;
@@ -79,6 +83,19 @@
     background-color: #f7f7f7;
     text-align: center;
   }
+
+  table.horizontal {
+    writing-mode: vertical-lr;
+  }
+
+  table.horizontal td > * {
+    writing-mode: horizontal-tb;
+  }
+
+  table.horizontal .title {
+    width: 250px;
+    height: 90px;
+  }
   </style>
 </head>
 <body>
@@ -100,6 +117,9 @@
     <div>
       <input type="number" id="width" value="300" /> px の横幅で画像を生成
     </div>
+    <div>
+      <label><input type="checkbox" id="to-horizontal" /> 画像を縦に並べる</label>
+    </div>
     <button id='gen-btn'>生成</button>
   </div>
   <div id="indicator"></div>
@@ -114,6 +134,7 @@ const ele = {
   localFiles: document.getElementById('local-files'),
   indicator: document.getElementById('indicator'),
   button: document.getElementById('gen-btn'),
+  toHorizontal: document.getElementById('to-horizontal'),
 };
 
 const generateCanvas = (url, title, interval, width, progress) =>
@@ -212,6 +233,8 @@ const onGenerateClick = () => {
     }
 
     list.appendChild(table);
+
+    setTableStyle(table, ele.toHorizontal.checked);
   }).catch(err => {
     console.error(err);
     ele.indicator.innerText = `エラーが発生しました`;
@@ -219,5 +242,23 @@ const onGenerateClick = () => {
 };
 
 ele.button.addEventListener('click', onGenerateClick);
+ele.toHorizontal.addEventListener('change', (e) => {
+  const table = ele.list.querySelector('table');
+  if (!table) {
+    return;
+  }
+
+  setTableStyle(table, e.target.checked);
+});
+
+
+const setTableStyle = (table, isHorizontal) => {
+  if (isHorizontal) {
+    table.classList.add('horizontal');
+    return;
+  }
+
+  table.classList.remove('horizontal');
+};
 </script>
 </html>
