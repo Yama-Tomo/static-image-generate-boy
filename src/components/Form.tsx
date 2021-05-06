@@ -13,6 +13,7 @@ type UiProps = {
   onWidthChange: h.JSX.GenericEventHandler<HTMLInputElement>;
   displayVertical: boolean;
   onDisplayVerticalChange: h.JSX.GenericEventHandler<HTMLInputElement>;
+  onGenerateClick: () => void;
 };
 
 const Ui = (props: UiProps) => (
@@ -48,7 +49,9 @@ const Ui = (props: UiProps) => (
       </div>
     </div>
     <div>
-      <button id="gen-btn">生成</button>
+      <button id="gen-btn" onClick={props.onGenerateClick}>
+        生成
+      </button>
     </div>
   </div>
 );
@@ -93,7 +96,18 @@ const StyledUi = styled(Ui)`
 
 /* ----------------- Container ----------------- */
 type State = Pick<UiProps, 'urls' | 'interval' | 'width' | 'displayVertical'>;
-const Container = (): h.JSX.Element => {
+
+type OnGenerateClickArgs = Pick<UiProps, 'displayVertical'> & {
+  width: number;
+  interval: number;
+  videos: { url: string; label: string }[];
+};
+
+type ContainerProps = {
+  onGenerateClick: (arg: OnGenerateClickArgs) => void;
+};
+
+const Container = (props: ContainerProps): h.JSX.Element => {
   const [state, setState] = useState<State>({
     urls: '',
     interval: '1',
@@ -109,6 +123,16 @@ const Container = (): h.JSX.Element => {
     onWidthChange: ({ currentTarget: { value: width } }) => setState((v) => ({ ...v, width })),
     onDisplayVerticalChange: ({ currentTarget: { checked } }) =>
       setState((v) => ({ ...v, displayVertical: checked })),
+    onGenerateClick: () => {
+      const { urls, width, interval, ...rest } = state;
+      // prettier-ignore
+      const videos = urls.trim().split('\n').filter(Boolean).map((url) => ({ url, label: url }));
+      if (!videos.length) {
+        return;
+      }
+
+      props.onGenerateClick({ ...rest, width: Number(width), interval: Number(interval), videos });
+    },
   };
 
   return <StyledUi {...uiProps} />;
@@ -116,3 +140,4 @@ const Container = (): h.JSX.Element => {
 
 /* --------------------------------------------- */
 export { Container as Form };
+export type { ContainerProps as FormProps };
