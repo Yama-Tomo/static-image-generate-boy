@@ -1,5 +1,4 @@
 import { h, render } from 'preact';
+import { App } from '~/App';
 
-const Main = () => <div>hello world</div>;
-
-render(<Main />, document.body);
+render(<App />, document.body);
