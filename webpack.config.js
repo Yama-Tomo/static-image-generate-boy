@@ -1,5 +1,8 @@
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const PreactRefreshPlugin = require('@prefresh/webpack');
 const path = require('path');
+
+const isDev = process.env.NODE_ENV !== 'production';
 
 module.exports = {
   mode: process.env.NODE_ENV,
@@ -21,5 +24,14 @@ module.exports = {
       '~': path.resolve('./src'),
     },
   },
-  plugins: [new HtmlWebpackPlugin({ template: './src/index.html' })],
+  devServer: {
+    historyApiFallback: true,
+    hot: true,
+    inline: true,
+    overlay: true,
+  },
+  plugins: [
+    new HtmlWebpackPlugin({ template: './src/index.html' }),
+    isDev && new PreactRefreshPlugin(),
+  ].filter(Boolean),
 };

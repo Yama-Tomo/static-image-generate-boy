@@ -14,6 +14,7 @@
     "typecheck": "tsc -p . --noEmit"
   },
   "devDependencies": {
+    "@prefresh/webpack": "^3.2.2",
     "@types/styled-components": "^5.1.9",
     "@typescript-eslint/eslint-plugin": "^4.22.0",
     "@typescript-eslint/parser": "^4.22.0",
