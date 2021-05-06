@@ -30,6 +30,7 @@ module.exports = {
     inline: true,
     overlay: true,
   },
+  devtool: 'eval-source-map',
   plugins: [
     new HtmlWebpackPlugin({ template: './src/index.html' }),
     isDev && new PreactRefreshPlugin(),
