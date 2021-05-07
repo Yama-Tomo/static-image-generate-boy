@@ -4,5 +4,8 @@
 
 https://angry-bell-86a4e9.netlify.app/
 
-要望・バグの報告は issue へお願いします
+# get started
 
+```bash
+$ yarn dev
+```
