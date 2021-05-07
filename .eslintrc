@@ -10,6 +10,7 @@
   },
   "parser": "@typescript-eslint/parser",
   "extends": [
+    "preact",
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
     "prettier"
