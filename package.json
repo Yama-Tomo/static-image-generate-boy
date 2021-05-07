@@ -10,7 +10,8 @@
     "dev:webpack": "NODE_ENV=development webpack serve",
     "dev:typecheck": "yarn typecheck --watch --pretty",
     "lint": "eslint './**/*.{js,ts,tsx}' --format codeframe --color",
-    "format-code": "prettier './**/*.{js,ts,tsx}' -w",
+    "run-prettier": "prettier './**/*.{js,ts,tsx}'",
+    "format-code": "yarn run-prettier -w",
     "typecheck": "tsc -p . --noEmit"
   },
   "devDependencies": {
