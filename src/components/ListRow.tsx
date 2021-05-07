@@ -166,6 +166,7 @@ const Container = (props: ContainerProps): h.JSX.Element => {
 
     videoRef.onloadeddata = () => {
       onVideoDurationLoaded(id, videoRef.duration);
+      videoRef.currentTime = interval;
     };
 
     videoRef.onerror = () => {
@@ -182,7 +183,6 @@ const Container = (props: ContainerProps): h.JSX.Element => {
 
     videoRef.src = videoUrl;
     videoRef.load();
-    videoRef.currentTime = interval;
   }, [interval, width, videoUrl, onVideoDurationLoaded, id, label, onProgressUpdate]);
 
   const uiProps: UiProps = {
