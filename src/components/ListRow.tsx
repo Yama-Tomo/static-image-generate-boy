@@ -38,7 +38,9 @@ const Ui = forwardRef<HTMLVideoElement, UiProps>((props, ref) => (
 const GeneratedImages = memo((props: { generatedImages: h.JSX.Element[] }) => (
   <Fragment>
     {props.generatedImages.map((Image, idx) => (
-      <td key={idx}>{Image}</td>
+      <td className="img" key={idx}>
+        {Image}
+      </td>
     ))}
   </Fragment>
 ));
@@ -75,6 +77,11 @@ const StyledUi = styled(Ui)`
   td {
     border: solid 1px #9b9b9b;
     min-width: 100px;
+
+    &.img {
+      text-align: center;
+      background-color: #e4e4e4;
+    }
   }
 
   span.label {
