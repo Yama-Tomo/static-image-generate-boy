@@ -26,7 +26,7 @@ const Ui = (props: UiProps) => (
         value={props.urls}
         onChange={props.onUrlsChange}
       />
-      <div>ローカルにある動画から生成する場合はここから選択してください</div>
+      <p>ローカルにある動画から生成する場合はここから選択してください</p>
       <input type="file" accept="video/*" multiple onChange={props.onLocalFilesChange} />
     </div>
     <div className="gen-options">
@@ -71,6 +71,11 @@ const StyledUi = styled(Ui)`
       width: 100%;
       height: 100px;
       box-sizing: border-box;
+    }
+
+    p {
+      font-size: 0.8rem;
+      margin-bottom: 0px;
     }
   }
 
