@@ -10,6 +10,7 @@ type UiProps = {
   frameLength: number;
   generatedImages: h.JSX.Element[];
   width: number;
+  isError: boolean;
 };
 
 const Ui = forwardRef<HTMLVideoElement, UiProps>((props, ref) => (
@@ -18,12 +19,18 @@ const Ui = forwardRef<HTMLVideoElement, UiProps>((props, ref) => (
       <span className="label">{props.label}</span>
       <video ref={ref} className="hide" />
     </td>
-    <GeneratedImages generatedImages={props.generatedImages} />
+    {props.isError ? (
+      <td colSpan={props.frameLength}>エラーが発生しました</td>
+    ) : (
+      <Fragment>
+        <GeneratedImages generatedImages={props.generatedImages} />
 
-    {/* 空白のセルが追加で必要な時の場合の描画 */}
-    {Array.from({ length: props.frameLength - props.generatedImages.length }).map((_, idx) => (
-      <td key={`empty-cell-${idx}`} />
-    ))}
+        {/* 空白のセルが追加で必要な時の場合の描画 */}
+        {Array.from({ length: props.frameLength - props.generatedImages.length }).map((_, idx) => (
+          <td key={`empty-cell-${idx}`} />
+        ))}
+      </Fragment>
+    )}
   </tr>
 ));
 
@@ -93,16 +100,18 @@ type ContainerProps = {
 } & Pick<UiProps, 'width' | 'label'>;
 
 const Container = (props: ContainerProps): h.JSX.Element => {
-  const [generatedImageElements, setGeneratedImageElements] = useState<UiProps['generatedImages']>(
-    []
-  );
+  const [state, setState] = useState<Pick<UiProps, 'generatedImages' | 'isError'>>({
+    generatedImages: [],
+    isError: false,
+  });
+
   const videoEleRef = useRef<HTMLVideoElement | null>(null);
   const { onVideoLoaded, onProgressUpdate, interval, videoUrl, width, id, label } = props;
 
   const progress = (() => {
-    if (videoEleRef.current && interval > 0) {
+    if (videoEleRef.current?.duration && interval > 0) {
       const numberOfImagesGenerate = Math.floor(videoEleRef.current.duration / interval);
-      return generatedImageElements.length / numberOfImagesGenerate;
+      return state.generatedImages.length / numberOfImagesGenerate;
     }
 
     return 0;
@@ -119,15 +128,16 @@ const Container = (props: ContainerProps): h.JSX.Element => {
     }
 
     const onseeked = () => {
-      setGeneratedImageElements((currentState) =>
-        currentState.concat(
+      setState((currentState) => ({
+        ...currentState,
+        generatedImages: currentState.generatedImages.concat(
           <Image
             ref={videoEleRef}
             width={width}
             label={`${label} [${videoRef.currentTime.toFixed(1)} sec]`}
           />
-        )
-      );
+        ),
+      }));
 
       const endOfSeek = videoRef.currentTime >= videoRef.duration;
       if (endOfSeek) {
@@ -148,20 +158,26 @@ const Container = (props: ContainerProps): h.JSX.Element => {
       onVideoLoaded(id, videoRef.duration);
     };
 
-    // TODO: エラーハンドリング
+    videoRef.onerror = () => {
+      setState({ generatedImages: [], isError: true });
+      // フレームの長さを渡さないとテーブルが描画されないので渡す
+      onVideoLoaded(id, 1);
+      // 進捗は 100% として渡す
+      onProgressUpdate(id, 1);
+    };
 
     console.log(`image generate start: [${videoUrl}]`);
 
-    setGeneratedImageElements([]);
+    setState({ generatedImages: [], isError: false });
 
     videoRef.src = videoUrl;
     videoRef.load();
     videoRef.currentTime = interval;
-  }, [interval, width, videoUrl, onVideoLoaded, id, label]);
+  }, [interval, width, videoUrl, onVideoLoaded, id, label, onProgressUpdate]);
 
   const uiProps: UiProps = {
     ...props,
-    generatedImages: generatedImageElements,
+    ...state,
   };
 
   return <StyledUi {...uiProps} ref={videoEleRef} />;
