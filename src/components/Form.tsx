@@ -1,5 +1,5 @@
 import { h } from 'preact';
-import { useState } from 'preact/hooks';
+import { useRef, useState } from 'preact/hooks';
 import styled from 'styled-components';
 
 /* -------------------- DOM -------------------- */
@@ -116,6 +116,7 @@ type ContainerProps = {
 };
 
 const Container = (props: ContainerProps): h.JSX.Element => {
+  const isTriggerGenerateButtonClick = useRef(false);
   const [state, setState] = useState<State>({
     urls: '',
     interval: '1',
@@ -130,8 +131,10 @@ const Container = (props: ContainerProps): h.JSX.Element => {
     onIntervalChange: ({ currentTarget: { value: interval } }) =>
       setState((v) => ({ ...v, interval })),
     onWidthChange: ({ currentTarget: { value: width } }) => setState((v) => ({ ...v, width })),
-    onDisplayVerticalChange: ({ currentTarget: { checked } }) =>
-      setState((v) => ({ ...v, displayVertical: checked })),
+    onDisplayVerticalChange: ({ currentTarget: { checked } }) => {
+      isTriggerGenerateButtonClick.current = true;
+      setState((v) => ({ ...v, displayVertical: checked }));
+    },
     onGenerateClick: () => {
       const { urls, width, interval, localFiles, ...rest } = state;
       // prettier-ignore
@@ -160,6 +163,11 @@ const Container = (props: ContainerProps): h.JSX.Element => {
       }
     },
   };
+
+  if (isTriggerGenerateButtonClick.current) {
+    isTriggerGenerateButtonClick.current = false;
+    uiProps.onGenerateClick();
+  }
 
   return <StyledUi {...uiProps} />;
 };
