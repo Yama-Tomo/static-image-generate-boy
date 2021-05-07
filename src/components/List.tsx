@@ -9,6 +9,7 @@ type UiProps = {
   videos: { url: string; label: string }[];
   progress?: number;
   frames: string[];
+  displayVertical: boolean;
 } & Pick<ListRowProps, 'onVideoDurationLoaded' | 'onProgressUpdate' | 'interval' | 'width'>;
 
 const Ui = (props: UiProps) => (
@@ -20,7 +21,9 @@ const Ui = (props: UiProps) => (
       <tr className="header">
         <td />
         {props.frames.map((sec) => (
-          <td key={sec}>{sec}</td>
+          <td key={sec}>
+            <span>{sec}</span>
+          </td>
         ))}
       </tr>
       {props.videos.map((video, idx) => {
@@ -66,10 +69,26 @@ const StyledUi = styled(Ui)`
     top: -9999px;
     left: -9999px;
   }
+
+  ${(p) =>
+    p.displayVertical &&
+    `
+    table {
+      writing-mode: vertical-lr;
+
+      td > * {
+        writing-mode: horizontal-tb;
+      }
+
+      .header > td {
+        height: auto;
+      }
+    }
+  `}
 `;
 
 /* ----------------- Container ----------------- */
-type ContainerProps = Pick<UiProps, 'width' | 'videos' | 'interval'>;
+type ContainerProps = Pick<UiProps, 'width' | 'videos' | 'interval' | 'displayVertical'>;
 
 type ID = ListRowProps['id'];
 

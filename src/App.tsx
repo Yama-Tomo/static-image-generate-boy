@@ -8,7 +8,7 @@ import { useState } from 'preact/hooks';
 type UiProps = {
   className?: string;
 } & Pick<FormProps, 'onGenerateClick'> &
-  Pick<ListProps, 'videos' | 'width' | 'interval'>;
+  Pick<ListProps, 'videos' | 'width' | 'interval' | 'displayVertical'>;
 
 const Ui = (props: UiProps): h.JSX.Element => (
   <main className={props.className}>
@@ -26,7 +26,12 @@ const Ui = (props: UiProps): h.JSX.Element => (
       </a>
     </h1>
     <Form onGenerateClick={props.onGenerateClick} />
-    <List interval={props.interval} width={props.width} videos={props.videos} />
+    <List
+      interval={props.interval}
+      width={props.width}
+      videos={props.videos}
+      displayVertical={props.displayVertical}
+    />
   </main>
 );
 
