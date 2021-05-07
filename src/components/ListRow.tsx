@@ -93,7 +93,7 @@ type ID = string;
 type ContainerProps = {
   id: ID;
   frameLength: number;
-  onVideoLoaded: (id: ID, videoDuration: number) => void;
+  onVideoDurationLoaded: (id: ID, videoDuration: number) => void;
   onProgressUpdate: (id: ID, progress: number) => void;
   interval: number;
   videoUrl: string;
@@ -106,7 +106,7 @@ const Container = (props: ContainerProps): h.JSX.Element => {
   });
 
   const videoEleRef = useRef<HTMLVideoElement | null>(null);
-  const { onVideoLoaded, onProgressUpdate, interval, videoUrl, width, id, label } = props;
+  const { onVideoDurationLoaded, onProgressUpdate, interval, videoUrl, width, id, label } = props;
 
   const progress = (() => {
     if (videoEleRef.current?.duration && interval > 0) {
@@ -155,13 +155,13 @@ const Container = (props: ContainerProps): h.JSX.Element => {
     };
 
     videoRef.onloadeddata = () => {
-      onVideoLoaded(id, videoRef.duration);
+      onVideoDurationLoaded(id, videoRef.duration);
     };
 
     videoRef.onerror = () => {
       setState({ generatedImages: [], isError: true });
       // フレームの長さを渡さないとテーブルが描画されないので渡す
-      onVideoLoaded(id, 1);
+      onVideoDurationLoaded(id, 1);
       // 進捗は 100% として渡す
       onProgressUpdate(id, 1);
     };
@@ -173,7 +173,7 @@ const Container = (props: ContainerProps): h.JSX.Element => {
     videoRef.src = videoUrl;
     videoRef.load();
     videoRef.currentTime = interval;
-  }, [interval, width, videoUrl, onVideoLoaded, id, label, onProgressUpdate]);
+  }, [interval, width, videoUrl, onVideoDurationLoaded, id, label, onProgressUpdate]);
 
   const uiProps: UiProps = {
     ...props,

@@ -9,7 +9,7 @@ type UiProps = {
   videos: { url: string; label: string }[];
   progress?: number;
   frames: string[];
-} & Pick<ListRowProps, 'onVideoLoaded' | 'onProgressUpdate' | 'interval' | 'width'>;
+} & Pick<ListRowProps, 'onVideoDurationLoaded' | 'onProgressUpdate' | 'interval' | 'width'>;
 
 const Ui = (props: UiProps) => (
   <div className={props.className}>
@@ -30,7 +30,7 @@ const Ui = (props: UiProps) => (
             key={unifiedId}
             id={unifiedId}
             frameLength={props.frames.length}
-            onVideoLoaded={props.onVideoLoaded}
+            onVideoDurationLoaded={props.onVideoDurationLoaded}
             onProgressUpdate={props.onProgressUpdate}
             interval={props.interval}
             videoUrl={video.url}
@@ -86,7 +86,7 @@ const Container = (props: ContainerProps): h.JSX.Element => {
     }));
   }, [props]);
 
-  const onVideoLoaded: UiProps['onVideoLoaded'] = useCallback((id, videoDuration) => {
+  const onVideoLoaded: UiProps['onVideoDurationLoaded'] = useCallback((id, videoDuration) => {
     setState((currentState) => {
       if (!currentState) {
         return undefined;
@@ -137,7 +137,7 @@ const Container = (props: ContainerProps): h.JSX.Element => {
     frames: Array.from({ length: frameLength }).map((_, idx) => {
       return `${((idx + 1) * props.interval).toFixed(1)} sec`;
     }),
-    onVideoLoaded,
+    onVideoDurationLoaded: onVideoLoaded,
     onProgressUpdate,
   };
 
