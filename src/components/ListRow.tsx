@@ -17,7 +17,9 @@ const Ui = forwardRef<HTMLVideoElement, UiProps>((props, ref) => (
   <tr className={props.className}>
     <td>
       <span className="label">{props.label}</span>
-      <video ref={ref} className="hide" />
+      <div className="video-wrap">
+        <video ref={ref} />
+      </div>
     </td>
     {props.isError ? (
       <td colSpan={props.frameLength}>エラーが発生しました</td>
@@ -66,10 +68,15 @@ const Image = forwardRef<HTMLVideoElement, { width: number; label: string }>((pr
 
 /* ------------------- Style ------------------- */
 const StyledUi = styled(Ui)`
-  .hide {
+  .video-wrap {
     position: absolute;
-    top: -9999px;
-    left: -9999px;
+    height: 1px;
+    width: 1px;
+    opacity: 0;
+
+    > video {
+      width: 100%;
+    }
   }
 
   border-collapse: collapse;
