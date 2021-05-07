@@ -14,6 +14,7 @@ type UiProps = {
   displayVertical: boolean;
   onDisplayVerticalChange: h.JSX.GenericEventHandler<HTMLInputElement>;
   onGenerateClick: () => void;
+  onLocalFilesChange: h.JSX.GenericEventHandler<HTMLInputElement>;
 };
 
 const Ui = (props: UiProps) => (
@@ -26,7 +27,7 @@ const Ui = (props: UiProps) => (
         onChange={props.onUrlsChange}
       />
       <div>ローカルにある動画から生成する場合はここから選択してください</div>
-      <input type="file" accept="video/*" multiple />
+      <input type="file" accept="video/*" multiple onChange={props.onLocalFilesChange} />
     </div>
     <div className="gen-options">
       <div>
@@ -95,7 +96,9 @@ const StyledUi = styled(Ui)`
 `;
 
 /* ----------------- Container ----------------- */
-type State = Pick<UiProps, 'urls' | 'interval' | 'width' | 'displayVertical'>;
+type State = Pick<UiProps, 'urls' | 'interval' | 'width' | 'displayVertical'> & {
+  localFiles: { url: string; label: string }[];
+};
 
 type OnGenerateClickArgs = Pick<UiProps, 'displayVertical'> & {
   width: number;
@@ -113,6 +116,7 @@ const Container = (props: ContainerProps): h.JSX.Element => {
     interval: '1',
     width: '300',
     displayVertical: false,
+    localFiles: [],
   });
 
   const uiProps: UiProps = {
@@ -124,14 +128,31 @@ const Container = (props: ContainerProps): h.JSX.Element => {
     onDisplayVerticalChange: ({ currentTarget: { checked } }) =>
       setState((v) => ({ ...v, displayVertical: checked })),
     onGenerateClick: () => {
-      const { urls, width, interval, ...rest } = state;
+      const { urls, width, interval, localFiles, ...rest } = state;
       // prettier-ignore
-      const videos = urls.trim().split('\n').filter(Boolean).map((url) => ({ url, label: url }));
+      const videos = urls.trim().split('\n').filter(Boolean).map((url) => ({ url, label: url })).concat(localFiles);
+
       if (!videos.length) {
         return;
       }
 
       props.onGenerateClick({ ...rest, width: Number(width), interval: Number(interval), videos });
+    },
+    onLocalFilesChange: ({ currentTarget }) => {
+      if (currentTarget.files) {
+        const localFiles = Array.from(currentTarget.files).map((file) => ({
+          url: URL.createObjectURL(file),
+          label: file.name,
+        }));
+
+        setState((v) => {
+          v.localFiles.forEach(({ url }) => {
+            URL.revokeObjectURL(url);
+          });
+
+          return { ...v, localFiles };
+        });
+      }
     },
   };
 
