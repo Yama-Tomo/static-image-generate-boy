@@ -81,6 +81,9 @@ const StyledUi = styled(Ui)`
     &.img {
       text-align: center;
       background-color: #e4e4e4;
+      > canvas {
+        vertical-align: middle;
+      }
     }
   }
 

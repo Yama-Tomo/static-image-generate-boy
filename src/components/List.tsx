@@ -48,11 +48,13 @@ const StyledUi = styled(Ui)`
   overflow: auto;
 
   table {
+    border-spacing: 0;
     border-collapse: collapse;
   }
 
   td {
     border: solid 1px #9b9b9b;
+    padding: 0px;
   }
 
   .header {
