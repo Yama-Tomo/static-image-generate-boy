@@ -104,7 +104,6 @@ const StyledUi = styled(Ui)`
   `}
 
   button {
-    cursor: pointer;
     height: 30px;
     margin-block-end: 1rem;
   }

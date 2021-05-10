@@ -66,6 +66,10 @@ const StyledUi = styled((props: UiProps) => (
       width: 30px;
     }
   }
+
+  button {
+    cursor: pointer;
+  }
 `;
 
 /* ----------------- Container ----------------- */

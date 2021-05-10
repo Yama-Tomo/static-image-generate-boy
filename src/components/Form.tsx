@@ -94,7 +94,6 @@ const StyledUi = styled(Ui)`
   }
 
   #gen-btn {
-    cursor: pointer;
     width: 100px;
     height: 30px;
   }
