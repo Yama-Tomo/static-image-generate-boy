@@ -10,6 +10,7 @@ type UiProps = {
   frameLength: number;
   generatedImages: h.JSX.Element[];
   videoUrl: string;
+  videoElementHandler: RefCallback<HTMLVideoElement>;
   width: number;
   isError: boolean;
 };
@@ -31,6 +32,7 @@ const Ui = forwardRef<HTMLVideoElement, UiProps>((props, ref) => (
             src={props.videoUrl}
             preload={'metadata'}
             controls
+            ref={props.videoElementHandler}
           />
         </td>
         <GeneratedImages generatedImages={props.generatedImages} />
@@ -74,7 +76,9 @@ const Image = forwardRef<HTMLVideoElement, { width: number; label: string }>((pr
   return <canvas ref={drawImage} />;
 });
 
-const Video = (props: h.JSX.IntrinsicElements['video']) => <video {...props} />;
+const Video = forwardRef<HTMLVideoElement, h.JSX.IntrinsicElements['video']>((props, ref) => (
+  <video {...props} ref={ref} />
+));
 
 /* ------------------- Style ------------------- */
 const StyledUi = styled(Ui)`
@@ -130,6 +134,7 @@ type ContainerProps = {
   onProgressUpdate: (id: ID, progress: number) => void;
   interval: number;
   videoUrl: string;
+  videoControl: 'play' | 'pause';
 } & Pick<UiProps, 'width' | 'label'>;
 
 const Container = (props: ContainerProps): h.JSX.Element => {
@@ -139,7 +144,8 @@ const Container = (props: ContainerProps): h.JSX.Element => {
   });
 
   const videoEleRef = useRef<HTMLVideoElement | null>(null);
-  const { onVideoDurationLoaded, onProgressUpdate, interval, videoUrl, width, id, label } = props;
+  // prettier-ignore
+  const { onVideoDurationLoaded, onProgressUpdate, interval, videoUrl, width, id, label, videoControl } = props;
 
   const progress = (() => {
     if (videoEleRef.current?.duration && interval > 0) {
@@ -211,6 +217,17 @@ const Container = (props: ContainerProps): h.JSX.Element => {
   const uiProps: UiProps = {
     ...props,
     ...state,
+    videoElementHandler: useCallback(
+      (ele) => {
+        if (videoControl === 'play') {
+          ele?.play();
+        }
+        if (videoControl === 'pause') {
+          ele?.pause();
+        }
+      },
+      [videoControl]
+    ),
   };
 
   return <StyledUi {...uiProps} ref={videoEleRef} />;
