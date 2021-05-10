@@ -40,7 +40,6 @@ const GlobalStyle = createGlobalStyle`
  body {
    box-sizing: border-box;
    margin: 0rem;
-   background-color: rgb(252 252 252);
    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
    color: #45515b;
  }
