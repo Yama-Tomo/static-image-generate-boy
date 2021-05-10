@@ -20,6 +20,9 @@ const Ui = (props: UiProps) => (
     <table className={props.frames.length > 0 ? '' : 'hide'}>
       <tr className="header">
         <td />
+        <td>
+          <span>動画</span>
+        </td>
         {props.frames.map((sec) => (
           <td key={sec}>
             <span>{sec}</span>

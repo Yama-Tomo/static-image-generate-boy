@@ -1,5 +1,5 @@
-import { Fragment, h } from 'preact';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { Fragment, h, RefCallback } from 'preact';
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import styled from 'styled-components';
 import { forwardRef, memo } from 'preact/compat';
 
@@ -9,6 +9,7 @@ type UiProps = {
   label: string;
   frameLength: number;
   generatedImages: h.JSX.Element[];
+  videoUrl: string;
   width: number;
   isError: boolean;
 };
@@ -22,9 +23,16 @@ const Ui = forwardRef<HTMLVideoElement, UiProps>((props, ref) => (
       </div>
     </td>
     {props.isError ? (
-      <td colSpan={props.frameLength}>エラーが発生しました</td>
+      <td colSpan={props.frameLength + 1}>エラーが発生しました</td>
     ) : (
       <Fragment>
+        <td className="video">
+          <Video
+            src={props.videoUrl}
+            preload={'metadata'}
+            controls
+          />
+        </td>
         <GeneratedImages generatedImages={props.generatedImages} />
 
         {/* 空白のセルが追加で必要な時の場合の描画 */}
@@ -66,6 +74,8 @@ const Image = forwardRef<HTMLVideoElement, { width: number; label: string }>((pr
   return <canvas ref={drawImage} />;
 });
 
+const Video = (props: h.JSX.IntrinsicElements['video']) => <video {...props} />;
+
 /* ------------------- Style ------------------- */
 const StyledUi = styled(Ui)`
   .video-wrap {
@@ -85,11 +95,17 @@ const StyledUi = styled(Ui)`
     border: solid 1px #9b9b9b;
     min-width: 100px;
 
-    &.img {
+    &.img,
+    &.video {
       text-align: center;
       background-color: #e4e4e4;
-      > canvas {
+      > canvas,
+      video {
         vertical-align: middle;
+      }
+
+      > video {
+        width: ${(p) => p.width}px;
       }
     }
   }
