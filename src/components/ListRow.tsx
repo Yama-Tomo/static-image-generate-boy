@@ -1,5 +1,5 @@
-import { Fragment, h } from 'preact';
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { Fragment, h, RefCallback } from 'preact';
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 import styled from 'styled-components';
 import { forwardRef, memo } from 'preact/compat';
 
@@ -9,6 +9,8 @@ type UiProps = {
   label: string;
   frameLength: number;
   generatedImages: h.JSX.Element[];
+  videoUrl: string;
+  videoElementHandler: RefCallback<HTMLVideoElement>;
   width: number;
   isError: boolean;
 };
@@ -22,9 +24,17 @@ const Ui = forwardRef<HTMLVideoElement, UiProps>((props, ref) => (
       </div>
     </td>
     {props.isError ? (
-      <td colSpan={props.frameLength}>エラーが発生しました</td>
+      <td colSpan={props.frameLength + 1}>エラーが発生しました</td>
     ) : (
       <Fragment>
+        <td className="video">
+          <Video
+            src={props.videoUrl}
+            preload={'metadata'}
+            controls
+            ref={props.videoElementHandler}
+          />
+        </td>
         <GeneratedImages generatedImages={props.generatedImages} />
 
         {/* 空白のセルが追加で必要な時の場合の描画 */}
@@ -66,6 +76,10 @@ const Image = forwardRef<HTMLVideoElement, { width: number; label: string }>((pr
   return <canvas ref={drawImage} />;
 });
 
+const Video = forwardRef<HTMLVideoElement, h.JSX.IntrinsicElements['video']>((props, ref) => (
+  <video {...props} ref={ref} />
+));
+
 /* ------------------- Style ------------------- */
 const StyledUi = styled(Ui)`
   .video-wrap {
@@ -85,11 +99,17 @@ const StyledUi = styled(Ui)`
     border: solid 1px #9b9b9b;
     min-width: 100px;
 
-    &.img {
+    &.img,
+    &.video {
       text-align: center;
       background-color: #e4e4e4;
-      > canvas {
+      > canvas,
+      video {
         vertical-align: middle;
+      }
+
+      > video {
+        width: ${(p) => p.width}px;
       }
     }
   }
@@ -114,6 +134,7 @@ type ContainerProps = {
   onProgressUpdate: (id: ID, progress: number) => void;
   interval: number;
   videoUrl: string;
+  videoControl: 'play' | 'pause';
 } & Pick<UiProps, 'width' | 'label'>;
 
 const Container = (props: ContainerProps): h.JSX.Element => {
@@ -123,7 +144,8 @@ const Container = (props: ContainerProps): h.JSX.Element => {
   });
 
   const videoEleRef = useRef<HTMLVideoElement | null>(null);
-  const { onVideoDurationLoaded, onProgressUpdate, interval, videoUrl, width, id, label } = props;
+  // prettier-ignore
+  const { onVideoDurationLoaded, onProgressUpdate, interval, videoUrl, width, id, label, videoControl } = props;
 
   const progress = (() => {
     if (videoEleRef.current?.duration && interval > 0) {
@@ -195,6 +217,17 @@ const Container = (props: ContainerProps): h.JSX.Element => {
   const uiProps: UiProps = {
     ...props,
     ...state,
+    videoElementHandler: useCallback(
+      (ele) => {
+        if (videoControl === 'play') {
+          ele?.play();
+        }
+        if (videoControl === 'pause') {
+          ele?.pause();
+        }
+      },
+      [videoControl]
+    ),
   };
 
   return <StyledUi {...uiProps} ref={videoEleRef} />;

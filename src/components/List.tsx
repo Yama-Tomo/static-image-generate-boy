@@ -10,45 +10,62 @@ type UiProps = {
   progress?: number;
   frames: string[];
   displayVertical: boolean;
-} & Pick<ListRowProps, 'onVideoDurationLoaded' | 'onProgressUpdate' | 'interval' | 'width'>;
+  onVideoControlClick: () => void;
+} & Pick<
+  ListRowProps,
+  'onVideoDurationLoaded' | 'onProgressUpdate' | 'interval' | 'width' | 'videoControl'
+>;
 
 const Ui = (props: UiProps) => (
   <div className={props.className}>
+    {props.frames.length > 0 && (
+      <button onClick={props.onVideoControlClick}>
+        全ての動画を{props.videoControl === 'pause' ? `再生` : `一時停止`}
+      </button>
+    )}
     {props.frames.length > 0 && props.progress != null && props.progress !== 100 && (
       <div>Processing... {props.progress.toFixed(0)} %</div>
     )}
-    <table className={props.frames.length > 0 ? '' : 'hide'}>
-      <tr className="header">
-        <td />
-        {props.frames.map((sec) => (
-          <td key={sec}>
-            <span>{sec}</span>
+    <div className="table-wrapper">
+      <table className={props.frames.length > 0 ? '' : 'hide'}>
+        <tr className="header">
+          <td />
+          <td>
+            <span>動画</span>
           </td>
-        ))}
-      </tr>
-      {props.videos.map((video, idx) => {
-        const unifiedId = createId(video.url, idx);
-        return (
-          <ListRow
-            key={unifiedId}
-            id={unifiedId}
-            frameLength={props.frames.length}
-            onVideoDurationLoaded={props.onVideoDurationLoaded}
-            onProgressUpdate={props.onProgressUpdate}
-            interval={props.interval}
-            videoUrl={video.url}
-            label={video.label}
-            width={props.width}
-          />
-        );
-      })}
-    </table>
+          {props.frames.map((sec) => (
+            <td key={sec}>
+              <span>{sec}</span>
+            </td>
+          ))}
+        </tr>
+        {props.videos.map((video, idx) => {
+          const unifiedId = createId(video.url, idx);
+          return (
+            <ListRow
+              videoControl={props.videoControl}
+              key={unifiedId}
+              id={unifiedId}
+              frameLength={props.frames.length}
+              onVideoDurationLoaded={props.onVideoDurationLoaded}
+              onProgressUpdate={props.onProgressUpdate}
+              interval={props.interval}
+              videoUrl={video.url}
+              label={video.label}
+              width={props.width}
+            />
+          );
+        })}
+      </table>
+    </div>
   </div>
 );
 
 /* ------------------- Style ------------------- */
 const StyledUi = styled(Ui)`
-  overflow: auto;
+  .table-wrapper {
+    overflow: auto;
+  }
 
   table {
     border-spacing: 0;
@@ -85,6 +102,11 @@ const StyledUi = styled(Ui)`
       }
     }
   `}
+
+  button {
+    height: 30px;
+    margin-block-end: 1rem;
+  }
 `;
 
 /* ----------------- Container ----------------- */
@@ -95,14 +117,14 @@ type ID = ListRowProps['id'];
 type State = ContainerProps & {
   videoDurations: Partial<Record<ID, number>>;
   generateProgress: Partial<Record<ID, number>>;
-};
+} & Pick<UiProps, 'videoControl'>;
 
 const Container = (props: ContainerProps): h.JSX.Element => {
   const [state, setState] = useState<State | undefined>(undefined);
 
   useEffect(() => {
     setState((currentState) => ({
-      ...(currentState ?? { videoDurations: {}, generateProgress: {} }),
+      ...(currentState ?? { videoDurations: {}, generateProgress: {}, videoControl: 'pause' }),
       ...props,
     }));
   }, [props]);
@@ -160,6 +182,16 @@ const Container = (props: ContainerProps): h.JSX.Element => {
     }),
     onVideoDurationLoaded: onVideoLoaded,
     onProgressUpdate,
+    onVideoControlClick: () => {
+      setState((currentState) => {
+        if (!currentState) {
+          return undefined;
+        }
+
+        const videoControl = currentState?.videoControl === 'pause' ? 'play' : 'pause';
+        return { ...currentState, videoControl };
+      });
+    },
   };
 
   return <StyledUi {...uiProps} />;
