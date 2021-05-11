@@ -1,5 +1,5 @@
 import { h } from 'preact';
-import { StateUpdater, useEffect, useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import styled from 'styled-components';
 
 /* -------------------- DOM -------------------- */
@@ -113,6 +113,7 @@ type OnGenerateClickArgs = Pick<UiProps, 'displayVertical'> & {
 
 type ContainerProps = {
   onGenerateClick: (arg: OnGenerateClickArgs) => void;
+  onAddonRunStateChange: (running: boolean) => void;
 };
 
 const addonEvents = {
@@ -122,7 +123,7 @@ const addonEvents = {
 
 const Container = (props: ContainerProps): h.JSX.Element => {
   const isAddonInstalled = !!window.staticImageGenerateBoyAddonInstalled;
-  const { onGenerateClick } = props;
+  const { onGenerateClick, onAddonRunStateChange } = props;
   const [state, setState] = useState<State>({
     urls: '',
     interval: '1',
@@ -132,7 +133,12 @@ const Container = (props: ContainerProps): h.JSX.Element => {
     triggerClick: false,
   });
 
-  useListenEndOfVideoUrlTransformByAddon(isAddonInstalled, onGenerateClick, state);
+  useListenEndOfVideoUrlTransformByAddon(
+    isAddonInstalled,
+    onGenerateClick,
+    onAddonRunStateChange,
+    state
+  );
 
   const uiProps: UiProps = {
     ...state,
@@ -148,7 +154,7 @@ const Container = (props: ContainerProps): h.JSX.Element => {
       const formattedUrls = urls.trim().split('\n').filter(Boolean);
 
       if (formattedUrls.length && isAddonInstalled) {
-        setState((currentState) => ({ ...currentState, isAddonRunning: true }));
+        onAddonRunStateChange(true);
 
         const eventPayload = { detail: { urls: formattedUrls } };
         document.dispatchEvent(new CustomEvent(addonEvents.videoUrlTransformStart, eventPayload));
@@ -191,6 +197,7 @@ const Container = (props: ContainerProps): h.JSX.Element => {
 const useListenEndOfVideoUrlTransformByAddon = (
   isAddonInstalled: boolean,
   onGenerateClick: ContainerProps['onGenerateClick'],
+  onAddonRunStateChange: ContainerProps['onAddonRunStateChange'],
   state: State
 ) => {
   useEffect(() => {
@@ -209,6 +216,7 @@ const useListenEndOfVideoUrlTransformByAddon = (
         return;
       }
 
+      onAddonRunStateChange(false);
       onGenerateClick({ ...rest, width: Number(width), interval: Number(interval), videos });
     };
 
@@ -216,7 +224,7 @@ const useListenEndOfVideoUrlTransformByAddon = (
     return function unbindListener() {
       document.removeEventListener(eventName, listener);
     };
-  }, [isAddonInstalled, onGenerateClick, state]);
+  }, [isAddonInstalled, onGenerateClick, onAddonRunStateChange, state]);
 };
 
 /* --------------------------------------------- */
