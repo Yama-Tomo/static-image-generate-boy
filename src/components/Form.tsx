@@ -1,5 +1,5 @@
 import { h } from 'preact';
-import { useRef, useState } from 'preact/hooks';
+import { useState } from 'preact/hooks';
 import styled from 'styled-components';
 
 /* -------------------- DOM -------------------- */
@@ -102,6 +102,7 @@ const StyledUi = styled(Ui)`
 /* ----------------- Container ----------------- */
 type State = Pick<UiProps, 'urls' | 'interval' | 'width' | 'displayVertical'> & {
   localFiles: { url: string; label: string }[];
+  triggerClick: boolean;
 };
 
 type OnGenerateClickArgs = Pick<UiProps, 'displayVertical'> & {
@@ -115,13 +116,13 @@ type ContainerProps = {
 };
 
 const Container = (props: ContainerProps): h.JSX.Element => {
-  const isTriggerGenerateButtonClick = useRef(false);
   const [state, setState] = useState<State>({
     urls: '',
     interval: '1',
     width: '300',
     displayVertical: false,
     localFiles: [],
+    triggerClick: false,
   });
 
   const uiProps: UiProps = {
@@ -131,8 +132,7 @@ const Container = (props: ContainerProps): h.JSX.Element => {
       setState((v) => ({ ...v, interval })),
     onWidthChange: ({ currentTarget: { value: width } }) => setState((v) => ({ ...v, width })),
     onDisplayVerticalChange: ({ currentTarget: { checked } }) => {
-      isTriggerGenerateButtonClick.current = true;
-      setState((v) => ({ ...v, displayVertical: checked }));
+      setState((v) => ({ ...v, displayVertical: checked, triggerClick: true }));
     },
     onGenerateClick: () => {
       const { urls, width, interval, localFiles, ...rest } = state;
@@ -163,8 +163,8 @@ const Container = (props: ContainerProps): h.JSX.Element => {
     },
   };
 
-  if (isTriggerGenerateButtonClick.current) {
-    isTriggerGenerateButtonClick.current = false;
+  if (state.triggerClick) {
+    setState((currentState) => ({ ...currentState, triggerClick: false }));
     uiProps.onGenerateClick();
   }
 
