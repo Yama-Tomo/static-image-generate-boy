@@ -1,5 +1,5 @@
 import { h } from 'preact';
-import { useEffect, useState } from 'preact/hooks';
+import { StateUpdater, useEffect, useRef, useState } from 'preact/hooks';
 import styled from 'styled-components';
 
 /* -------------------- DOM -------------------- */
@@ -145,6 +145,7 @@ const Container = (props: ContainerProps): h.JSX.Element => {
     onAddonRunStateChange,
     state
   );
+  useTriggerGenerateOnFirstRender(props.defaultValues.urls.length > 0, setState);
 
   const uiProps: UiProps = {
     ...state,
@@ -231,6 +232,40 @@ const useListenEndOfVideoUrlTransformByAddon = (
       document.removeEventListener(eventName, listener);
     };
   }, [isAddonInstalled, onGenerateClick, onAddonRunStateChange, state]);
+};
+
+const useTriggerGenerateOnFirstRender = (
+  isGenerateExecutable: boolean,
+  setState: StateUpdater<State>
+) => {
+  const useEffectCalled = useRef(false);
+
+  useEffect(() => {
+    if (useEffectCalled.current) {
+      return;
+    }
+    useEffectCalled.current = true;
+
+    if (!isGenerateExecutable) {
+      return;
+    }
+
+    const waitIntervalMs = 5;
+    const waitTimeoutMs = 50;
+    (async () => {
+      // 拡張機能がインストールされているかの変数は非同期で定義されるので，定義されているか一定期間の間待機する
+      //（一定期間待機しても変数定義がされていない場合もあるのでその点に留意
+      for (let i = 1; i <= waitTimeoutMs / waitIntervalMs; i++) {
+        if (window.staticImageGenerateBoyAddonInstalled) {
+          break;
+        }
+
+        await new Promise((r) => setTimeout(r, waitIntervalMs));
+      }
+
+      setState((currentState) => ({ ...currentState, triggerClick: true }));
+    })();
+  }, [isGenerateExecutable, setState]);
 };
 
 /* --------------------------------------------- */
