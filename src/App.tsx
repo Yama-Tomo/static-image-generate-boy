@@ -3,11 +3,12 @@ import styled, { createGlobalStyle } from 'styled-components';
 import { Form, FormProps } from '~/components/Form';
 import { List, ListProps } from '~/components/List';
 import { useState } from 'preact/hooks';
+import qs from 'qs';
 
 /* -------------------- DOM -------------------- */
 type UiProps = {
   className?: string;
-} & Pick<FormProps, 'onGenerateClick' | 'onAddonRunStateChange'> &
+} & Pick<FormProps, 'onGenerateClick' | 'onAddonRunStateChange' | 'defaultValues'> &
   Pick<ListProps, 'videos' | 'width' | 'interval' | 'displayVertical' | 'isAddonRunning'>;
 
 const Ui = (props: UiProps): h.JSX.Element => (
@@ -28,6 +29,7 @@ const Ui = (props: UiProps): h.JSX.Element => (
     <Form
       onGenerateClick={props.onGenerateClick}
       onAddonRunStateChange={props.onAddonRunStateChange}
+      defaultValues={props.defaultValues}
     />
     <List
       interval={props.interval}
@@ -80,6 +82,7 @@ type OnGenerateClickArgs = Parameters<UiProps['onGenerateClick']>[0];
 type State = OnGenerateClickArgs & Pick<UiProps, 'isAddonRunning'>;
 
 const Container = (): h.JSX.Element => {
+  const params = parsedUrlParams();
   const [state, setState] = useState<State>({
     width: 0,
     displayVertical: false,
@@ -93,9 +96,33 @@ const Container = (): h.JSX.Element => {
     onGenerateClick: (values) => setState((currentState) => ({ ...currentState, ...values })),
     onAddonRunStateChange: (isAddonRunning) =>
       setState((currentState) => ({ ...currentState, isAddonRunning })),
+    defaultValues: {
+      urls: params.urls,
+      width: params.width,
+      interval: params.interval,
+      displayVertical: params.displayVertical,
+    },
   };
 
   return <StyledUi {...uiProps} />;
+};
+
+const parsedUrlParams = () => {
+  const parsedParams = qs.parse(location.search, { ignoreQueryPrefix: true });
+
+  const urls = (Array.isArray(parsedParams['u']) ? parsedParams['u'] : []).map(String);
+  const commaSeparatedUrls =
+    typeof parsedParams['csu'] === 'string' ? parsedParams['csu'].split(',') : [];
+  const width = parsedParams['w'] ? Number(parsedParams['w']) : 300;
+  const interval = parsedParams['i'] ? Number(parsedParams['i']) : 1;
+  const displayVertical = parsedParams['v'] === '1';
+
+  return {
+    urls: urls.concat(commaSeparatedUrls),
+    width,
+    interval,
+    displayVertical,
+  };
 };
 
 /* --------------------------------------------- */

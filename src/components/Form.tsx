@@ -114,6 +114,12 @@ type OnGenerateClickArgs = Pick<UiProps, 'displayVertical'> & {
 type ContainerProps = {
   onGenerateClick: (arg: OnGenerateClickArgs) => void;
   onAddonRunStateChange: (running: boolean) => void;
+  defaultValues: {
+    urls: string[];
+    width: number;
+    interval: number;
+    displayVertical: boolean;
+  };
 };
 
 const addonEvents = {
@@ -125,10 +131,10 @@ const Container = (props: ContainerProps): h.JSX.Element => {
   const isAddonInstalled = !!window.staticImageGenerateBoyAddonInstalled;
   const { onGenerateClick, onAddonRunStateChange } = props;
   const [state, setState] = useState<State>({
-    urls: '',
-    interval: '1',
-    width: '300',
-    displayVertical: false,
+    urls: props.defaultValues.urls.join('\n'),
+    interval: String(props.defaultValues.interval),
+    width: String(props.defaultValues.width),
+    displayVertical: props.defaultValues.displayVertical,
     localFiles: [],
     triggerClick: false,
   });
