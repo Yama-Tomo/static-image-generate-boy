@@ -158,17 +158,17 @@ const Container = (props: ContainerProps): h.JSX.Element => {
     },
     onGenerateClick: () => {
       const { urls, width, interval, localFiles, ...rest } = state;
-      const formattedUrls = urls.trim().split('\n').filter(Boolean);
+      const remoteUrls = urls.trim().split('\n').filter(Boolean);
 
-      if (formattedUrls.length && isAddonInstalled) {
+      if (remoteUrls.length && isAddonInstalled) {
         onAddonRunStateChange(true);
 
-        const eventPayload = { detail: { urls: formattedUrls } };
+        const eventPayload = { detail: { urls: remoteUrls } };
         document.dispatchEvent(new CustomEvent(addonEvents.videoUrlTransformStart, eventPayload));
         return;
       }
 
-      const videos = formattedUrls.map((url) => ({ url, label: url })).concat(localFiles);
+      const videos = remoteUrls.map((url) => ({ url, label: url })).concat(localFiles);
       if (!videos.length) {
         return;
       }
