@@ -145,7 +145,7 @@ const Container = (props: ContainerProps): h.JSX.Element => {
     onAddonRunStateChange,
     state
   );
-  useTriggerGenerateOnFirstRender(props.defaultValues.urls.length > 0, setState);
+  useTriggerGenerateOnFirstRender(isGenerateExecutable(props.defaultValues.urls), setState);
 
   const uiProps: UiProps = {
     ...state,
@@ -169,7 +169,7 @@ const Container = (props: ContainerProps): h.JSX.Element => {
       }
 
       const videos = remoteUrls.map((url) => ({ url, label: url })).concat(localFiles);
-      if (!videos.length) {
+      if (!isGenerateExecutable(videos)) {
         return;
       }
 
@@ -201,6 +201,10 @@ const Container = (props: ContainerProps): h.JSX.Element => {
   return <StyledUi {...uiProps} />;
 };
 
+const isGenerateExecutable = (
+  urlsOrVideos: ContainerProps['defaultValues']['urls'] | OnGenerateClickArgs['videos']
+) => urlsOrVideos.length > 0;
+
 const useListenEndOfVideoUrlTransformByAddon = (
   isAddonInstalled: boolean,
   onGenerateClick: ContainerProps['onGenerateClick'],
@@ -219,7 +223,7 @@ const useListenEndOfVideoUrlTransformByAddon = (
         .map((url) => ({ url: url.transformed, label: url.original }))
         .concat(localFiles);
 
-      if (!videos.length) {
+      if (!isGenerateExecutable(videos)) {
         return;
       }
 
