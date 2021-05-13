@@ -157,7 +157,7 @@ const Container = (props: ContainerProps): h.JSX.Element => {
         videoDurations: {},
         generateProgress: {},
         videoControl: 'pause',
-        isAddonRun: false,
+        isAddonRunning: false,
       }),
       ...props,
     }));
