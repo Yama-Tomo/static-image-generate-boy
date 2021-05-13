@@ -8,6 +8,7 @@ type UiProps = {
   className?: string;
   videos: { url: string; label: string }[];
   progress?: number;
+  isAddonRunning: boolean;
   frames: string[];
   displayVertical: boolean;
   onVideoControlClick: () => void;
@@ -18,14 +19,19 @@ type UiProps = {
 
 const Ui = (props: UiProps) => (
   <div className={props.className}>
-    {props.frames.length > 0 && (
-      <button onClick={props.onVideoControlClick}>
-        全ての動画を{props.videoControl === 'pause' ? `再生` : `一時停止`}
-      </button>
-    )}
-    {props.frames.length > 0 && props.progress != null && props.progress !== 100 && (
-      <div>Processing... {props.progress.toFixed(0)} %</div>
-    )}
+    <div className="control">
+      {props.frames.length > 0 && (
+        <button onClick={props.onVideoControlClick}>
+          全ての動画を{props.videoControl === 'pause' ? `再生` : `一時停止`}
+        </button>
+      )}
+      <div className="status">
+        {props.isAddonRunning && <span className="visible-delay">アドオン実行中...</span>}
+        {props.frames.length > 0 && props.progress != null && props.progress !== 100 && (
+          <span className="visible-delay">Processing... {props.progress.toFixed(0)} %</span>
+        )}
+      </div>
+    </div>
     <div className="table-wrapper">
       <table className={props.frames.length > 0 ? '' : 'hide'}>
         <tr className="header">
@@ -63,6 +69,31 @@ const Ui = (props: UiProps) => (
 
 /* ------------------- Style ------------------- */
 const StyledUi = styled(Ui)`
+  .control {
+    display: flex;
+    align-items: center;
+    margin-block-end: 1rem;
+
+    button {
+      height: 30px;
+      margin-inline-end: 0.5rem;
+    }
+
+    .status {
+      font-size: 0.9rem;
+
+      .visible-delay {
+        animation: 0s linear 0.3s forwards makeVisible;
+        visibility: hidden;
+        @keyframes makeVisible {
+          to {
+            visibility: visible;
+          }
+        }
+      }
+    }
+  }
+
   .table-wrapper {
     overflow: auto;
   }
@@ -102,29 +133,32 @@ const StyledUi = styled(Ui)`
       }
     }
   `}
-
-  button {
-    height: 30px;
-    margin-block-end: 1rem;
-  }
 `;
 
 /* ----------------- Container ----------------- */
-type ContainerProps = Pick<UiProps, 'width' | 'videos' | 'interval' | 'displayVertical'>;
+type ContainerProps = Pick<
+  UiProps,
+  'width' | 'videos' | 'interval' | 'displayVertical' | 'isAddonRunning'
+>;
 
 type ID = ListRowProps['id'];
 
 type State = ContainerProps & {
   videoDurations: Partial<Record<ID, number>>;
   generateProgress: Partial<Record<ID, number>>;
-} & Pick<UiProps, 'videoControl'>;
+} & Pick<UiProps, 'videoControl' | 'isAddonRunning'>;
 
 const Container = (props: ContainerProps): h.JSX.Element => {
   const [state, setState] = useState<State | undefined>(undefined);
 
   useEffect(() => {
     setState((currentState) => ({
-      ...(currentState ?? { videoDurations: {}, generateProgress: {}, videoControl: 'pause' }),
+      ...(currentState ?? {
+        videoDurations: {},
+        generateProgress: {},
+        videoControl: 'pause',
+        isAddonRunning: false,
+      }),
       ...props,
     }));
   }, [props]);

@@ -7,8 +7,8 @@ import { useState } from 'preact/hooks';
 /* -------------------- DOM -------------------- */
 type UiProps = {
   className?: string;
-} & Pick<FormProps, 'onGenerateClick'> &
-  Pick<ListProps, 'videos' | 'width' | 'interval' | 'displayVertical'>;
+} & Pick<FormProps, 'onGenerateClick' | 'onAddonRunStateChange'> &
+  Pick<ListProps, 'videos' | 'width' | 'interval' | 'displayVertical' | 'isAddonRunning'>;
 
 const Ui = (props: UiProps): h.JSX.Element => (
   <main className={props.className}>
@@ -25,12 +25,16 @@ const Ui = (props: UiProps): h.JSX.Element => (
         />
       </a>
     </h1>
-    <Form onGenerateClick={props.onGenerateClick} />
+    <Form
+      onGenerateClick={props.onGenerateClick}
+      onAddonRunStateChange={props.onAddonRunStateChange}
+    />
     <List
       interval={props.interval}
       width={props.width}
       videos={props.videos}
       displayVertical={props.displayVertical}
+      isAddonRunning={props.isAddonRunning}
     />
   </main>
 );
@@ -73,18 +77,22 @@ const StyledUi = styled((props: UiProps) => (
 
 /* ----------------- Container ----------------- */
 type OnGenerateClickArgs = Parameters<FormProps['onGenerateClick']>[0];
+type State = OnGenerateClickArgs & Pick<UiProps, 'isAddonRunning'>;
 
 const Container = (): h.JSX.Element => {
-  const [state, setState] = useState<OnGenerateClickArgs>({
+  const [state, setState] = useState<State>({
     width: 0,
     displayVertical: false,
     interval: 0,
     videos: [],
+    isAddonRunning: false,
   });
 
   const uiProps: UiProps = {
     ...state,
-    onGenerateClick: setState,
+    onGenerateClick: (values) => setState((currentState) => ({ ...currentState, ...values })),
+    onAddonRunStateChange: (isAddonRunning) =>
+      setState((currentState) => ({ ...currentState, isAddonRunning })),
   };
 
   return <StyledUi {...uiProps} />;

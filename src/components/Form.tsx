@@ -1,5 +1,5 @@
 import { h } from 'preact';
-import { useRef, useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import styled from 'styled-components';
 
 /* -------------------- DOM -------------------- */
@@ -102,6 +102,7 @@ const StyledUi = styled(Ui)`
 /* ----------------- Container ----------------- */
 type State = Pick<UiProps, 'urls' | 'interval' | 'width' | 'displayVertical'> & {
   localFiles: { url: string; label: string }[];
+  triggerClick: boolean;
 };
 
 type OnGenerateClickArgs = Pick<UiProps, 'displayVertical'> & {
@@ -112,17 +113,32 @@ type OnGenerateClickArgs = Pick<UiProps, 'displayVertical'> & {
 
 type ContainerProps = {
   onGenerateClick: (arg: OnGenerateClickArgs) => void;
+  onAddonRunStateChange: (running: boolean) => void;
 };
 
+const addonEvents = {
+  videoUrlTransformStart: 'staticImageGenerateBoyAddon:onVideoUrlTransformStart',
+  videoUrlTransformEnd: 'staticImageGenerateBoyAddon:onVideoUrlTransformEnd',
+} as const;
+
 const Container = (props: ContainerProps): h.JSX.Element => {
-  const isTriggerGenerateButtonClick = useRef(false);
+  const isAddonInstalled = !!window.staticImageGenerateBoyAddonInstalled;
+  const { onGenerateClick, onAddonRunStateChange } = props;
   const [state, setState] = useState<State>({
     urls: '',
     interval: '1',
     width: '300',
     displayVertical: false,
     localFiles: [],
+    triggerClick: false,
   });
+
+  useListenEndOfVideoUrlTransformByAddon(
+    isAddonInstalled,
+    onGenerateClick,
+    onAddonRunStateChange,
+    state
+  );
 
   const uiProps: UiProps = {
     ...state,
@@ -131,19 +147,26 @@ const Container = (props: ContainerProps): h.JSX.Element => {
       setState((v) => ({ ...v, interval })),
     onWidthChange: ({ currentTarget: { value: width } }) => setState((v) => ({ ...v, width })),
     onDisplayVerticalChange: ({ currentTarget: { checked } }) => {
-      isTriggerGenerateButtonClick.current = true;
-      setState((v) => ({ ...v, displayVertical: checked }));
+      setState((v) => ({ ...v, displayVertical: checked, triggerClick: true }));
     },
     onGenerateClick: () => {
       const { urls, width, interval, localFiles, ...rest } = state;
-      // prettier-ignore
-      const videos = urls.trim().split('\n').filter(Boolean).map((url) => ({ url, label: url })).concat(localFiles);
+      const formattedUrls = urls.trim().split('\n').filter(Boolean);
 
+      if (formattedUrls.length && isAddonInstalled) {
+        onAddonRunStateChange(true);
+
+        const eventPayload = { detail: { urls: formattedUrls } };
+        document.dispatchEvent(new CustomEvent(addonEvents.videoUrlTransformStart, eventPayload));
+        return;
+      }
+
+      const videos = formattedUrls.map((url) => ({ url, label: url })).concat(localFiles);
       if (!videos.length) {
         return;
       }
 
-      props.onGenerateClick({ ...rest, width: Number(width), interval: Number(interval), videos });
+      onGenerateClick({ ...rest, width: Number(width), interval: Number(interval), videos });
     },
     onLocalFilesChange: ({ currentTarget }) => {
       if (currentTarget.files) {
@@ -163,12 +186,45 @@ const Container = (props: ContainerProps): h.JSX.Element => {
     },
   };
 
-  if (isTriggerGenerateButtonClick.current) {
-    isTriggerGenerateButtonClick.current = false;
+  if (state.triggerClick) {
+    setState((currentState) => ({ ...currentState, triggerClick: false }));
     uiProps.onGenerateClick();
   }
 
   return <StyledUi {...uiProps} />;
+};
+
+const useListenEndOfVideoUrlTransformByAddon = (
+  isAddonInstalled: boolean,
+  onGenerateClick: ContainerProps['onGenerateClick'],
+  onAddonRunStateChange: ContainerProps['onAddonRunStateChange'],
+  state: State
+) => {
+  useEffect(() => {
+    if (!isAddonInstalled) {
+      return;
+    }
+
+    const eventName = addonEvents.videoUrlTransformEnd;
+    const listener: (e: DocumentEventMap[typeof eventName]) => void = (e) => {
+      const { width, interval, localFiles, ...rest } = state;
+      const videos = e.detail.urls
+        .map((url) => ({ url: url.transformed, label: url.original }))
+        .concat(localFiles);
+
+      if (!videos.length) {
+        return;
+      }
+
+      onAddonRunStateChange(false);
+      onGenerateClick({ ...rest, width: Number(width), interval: Number(interval), videos });
+    };
+
+    document.addEventListener(eventName, listener);
+    return function unbindListener() {
+      document.removeEventListener(eventName, listener);
+    };
+  }, [isAddonInstalled, onGenerateClick, onAddonRunStateChange, state]);
 };
 
 /* --------------------------------------------- */
