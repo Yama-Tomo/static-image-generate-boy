@@ -2,6 +2,7 @@ import { h } from 'preact';
 import { StateUpdater, useEffect, useState } from 'preact/hooks';
 import styled from 'styled-components';
 import { useOneTimeEffect } from '~/hooks';
+import { wait } from '~/libs';
 
 /* -------------------- DOM -------------------- */
 type UiProps = {
@@ -248,18 +249,9 @@ const useTriggerGenerateOnFirstRender = (
       return;
     }
 
-    const waitIntervalMs = 5;
-    const waitTimeoutMs = 50;
     // 拡張機能がインストールされているかの変数は非同期で定義されるので，定義されているか一定期間の間待機する
     //（一定期間待機しても変数定義がされていない場合もあるのでその点に留意
-    for (let i = 1; i <= waitTimeoutMs / waitIntervalMs; i++) {
-      if (window.staticImageGenerateBoyAddonInstalled) {
-        break;
-      }
-
-      await new Promise((r) => setTimeout(r, waitIntervalMs));
-    }
-
+    await wait(5, 50, () => !!window.staticImageGenerateBoyAddonInstalled);
     setState((currentState) => ({ ...currentState, triggerClick: true }));
   });
 };
