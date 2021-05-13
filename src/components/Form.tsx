@@ -141,7 +141,7 @@ const Container = (props: ContainerProps): h.JSX.Element => {
   });
 
   useListenEndOfVideoUrlTransformByAddon(onGenerateClick, onAddonRunStateChange, state);
-  useTriggerGenerateOnFirstRender(isGenerateExecutable(props.defaultValues.urls), setState);
+  useTriggerGenerateOnFirstRender(setState);
 
   const uiProps: UiProps = {
     ...state,
@@ -235,15 +235,8 @@ const useListenEndOfVideoUrlTransformByAddon = (
   }, [onGenerateClick, onAddonRunStateChange, state]);
 };
 
-const useTriggerGenerateOnFirstRender = (
-  isGenerateExecutable: boolean,
-  setState: StateUpdater<State>
-) => {
+const useTriggerGenerateOnFirstRender = (setState: StateUpdater<State>) => {
   useOneTimeEffect(async () => {
-    if (!isGenerateExecutable) {
-      return;
-    }
-
     // 拡張機能がインストールされているかの変数は非同期で定義されるので，定義されているか一定期間の間待機する
     //（一定期間待機しても変数定義がされていない場合もあるのでその点に留意
     await wait(5, 50, isAddonInstalled);
