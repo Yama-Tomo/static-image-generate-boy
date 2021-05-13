@@ -130,7 +130,6 @@ const addonEvents = {
 } as const;
 
 const Container = (props: ContainerProps): h.JSX.Element => {
-  const isAddonInstalled = !!window.staticImageGenerateBoyAddonInstalled;
   const { onGenerateClick, onAddonRunStateChange } = props;
   const [state, setState] = useState<State>({
     urls: props.defaultValues.urls.join('\n'),
@@ -141,12 +140,7 @@ const Container = (props: ContainerProps): h.JSX.Element => {
     triggerClick: false,
   });
 
-  useListenEndOfVideoUrlTransformByAddon(
-    isAddonInstalled,
-    onGenerateClick,
-    onAddonRunStateChange,
-    state
-  );
+  useListenEndOfVideoUrlTransformByAddon(onGenerateClick, onAddonRunStateChange, state);
   useTriggerGenerateOnFirstRender(isGenerateExecutable(props.defaultValues.urls), setState);
 
   const uiProps: UiProps = {
@@ -162,7 +156,7 @@ const Container = (props: ContainerProps): h.JSX.Element => {
       const { urls, width, interval, localFiles, ...rest } = state;
       const remoteUrls = urls.trim().split('\n').filter(Boolean);
 
-      if (remoteUrls.length && isAddonInstalled) {
+      if (remoteUrls.length && isAddonInstalled()) {
         onAddonRunStateChange(true);
 
         const eventPayload = { detail: { urls: remoteUrls } };
@@ -207,14 +201,15 @@ const isGenerateExecutable = (
   urlsOrVideos: ContainerProps['defaultValues']['urls'] | OnGenerateClickArgs['videos']
 ) => urlsOrVideos.length > 0;
 
+const isAddonInstalled = () => !!window.staticImageGenerateBoyAddonInstalled;
+
 const useListenEndOfVideoUrlTransformByAddon = (
-  isAddonInstalled: boolean,
   onGenerateClick: ContainerProps['onGenerateClick'],
   onAddonRunStateChange: ContainerProps['onAddonRunStateChange'],
   state: State
 ) => {
   useEffect(() => {
-    if (!isAddonInstalled) {
+    if (!isAddonInstalled()) {
       return;
     }
 
@@ -237,7 +232,7 @@ const useListenEndOfVideoUrlTransformByAddon = (
     return function unbindListener() {
       document.removeEventListener(eventName, listener);
     };
-  }, [isAddonInstalled, onGenerateClick, onAddonRunStateChange, state]);
+  }, [onGenerateClick, onAddonRunStateChange, state]);
 };
 
 const useTriggerGenerateOnFirstRender = (
@@ -251,7 +246,7 @@ const useTriggerGenerateOnFirstRender = (
 
     // 拡張機能がインストールされているかの変数は非同期で定義されるので，定義されているか一定期間の間待機する
     //（一定期間待機しても変数定義がされていない場合もあるのでその点に留意
-    await wait(5, 50, () => !!window.staticImageGenerateBoyAddonInstalled);
+    await wait(5, 50, isAddonInstalled);
     setState((currentState) => ({ ...currentState, triggerClick: true }));
   });
 };
