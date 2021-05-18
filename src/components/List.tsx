@@ -94,10 +94,6 @@ const StyledUi = styled(Ui)`
     }
   }
 
-  .table-wrapper {
-    overflow: auto;
-  }
-
   table {
     border-spacing: 0;
     border-collapse: collapse;
