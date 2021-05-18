@@ -1,6 +1,8 @@
 import { h } from 'preact';
-import { useEffect, useState } from 'preact/hooks';
+import { StateUpdater, useEffect, useState } from 'preact/hooks';
 import styled from 'styled-components';
+import { useOneTimeEffect } from '~/hooks';
+import { wait } from '~/libs';
 
 /* -------------------- DOM -------------------- */
 type UiProps = {
@@ -111,9 +113,15 @@ type OnGenerateClickArgs = Pick<UiProps, 'displayVertical'> & {
   videos: { url: string; label: string }[];
 };
 
-type ContainerProps = {
+type ContainerProps = Pick<UiProps, 'className'> & {
   onGenerateClick: (arg: OnGenerateClickArgs) => void;
   onAddonRunStateChange: (running: boolean) => void;
+  defaultValues: {
+    urls: string[];
+    width: number;
+    interval: number;
+    displayVertical: boolean;
+  };
 };
 
 const addonEvents = {
@@ -122,26 +130,22 @@ const addonEvents = {
 } as const;
 
 const Container = (props: ContainerProps): h.JSX.Element => {
-  const isAddonInstalled = !!window.staticImageGenerateBoyAddonInstalled;
   const { onGenerateClick, onAddonRunStateChange } = props;
   const [state, setState] = useState<State>({
-    urls: '',
-    interval: '1',
-    width: '300',
-    displayVertical: false,
+    urls: props.defaultValues.urls.join('\n'),
+    interval: String(props.defaultValues.interval),
+    width: String(props.defaultValues.width),
+    displayVertical: props.defaultValues.displayVertical,
     localFiles: [],
     triggerClick: false,
   });
 
-  useListenEndOfVideoUrlTransformByAddon(
-    isAddonInstalled,
-    onGenerateClick,
-    onAddonRunStateChange,
-    state
-  );
+  useListenEndOfVideoUrlTransformByAddon(onGenerateClick, onAddonRunStateChange, state);
+  useTriggerGenerateOnFirstRender(setState);
 
   const uiProps: UiProps = {
     ...state,
+    ...props,
     onUrlsChange: ({ currentTarget: { value: urls } }) => setState((v) => ({ ...v, urls })),
     onIntervalChange: ({ currentTarget: { value: interval } }) =>
       setState((v) => ({ ...v, interval })),
@@ -151,18 +155,18 @@ const Container = (props: ContainerProps): h.JSX.Element => {
     },
     onGenerateClick: () => {
       const { urls, width, interval, localFiles, ...rest } = state;
-      const formattedUrls = urls.trim().split('\n').filter(Boolean);
+      const remoteUrls = urls.trim().split('\n').filter(Boolean);
 
-      if (formattedUrls.length && isAddonInstalled) {
+      if (remoteUrls.length && isAddonInstalled()) {
         onAddonRunStateChange(true);
 
-        const eventPayload = { detail: { urls: formattedUrls } };
+        const eventPayload = { detail: { urls: remoteUrls } };
         document.dispatchEvent(new CustomEvent(addonEvents.videoUrlTransformStart, eventPayload));
         return;
       }
 
-      const videos = formattedUrls.map((url) => ({ url, label: url })).concat(localFiles);
-      if (!videos.length) {
+      const videos = remoteUrls.map((url) => ({ url, label: url })).concat(localFiles);
+      if (!isGenerateExecutable(videos)) {
         return;
       }
 
@@ -194,14 +198,19 @@ const Container = (props: ContainerProps): h.JSX.Element => {
   return <StyledUi {...uiProps} />;
 };
 
+const isGenerateExecutable = (
+  urlsOrVideos: ContainerProps['defaultValues']['urls'] | OnGenerateClickArgs['videos']
+) => urlsOrVideos.length > 0;
+
+const isAddonInstalled = () => !!window.staticImageGenerateBoyAddonInstalled;
+
 const useListenEndOfVideoUrlTransformByAddon = (
-  isAddonInstalled: boolean,
   onGenerateClick: ContainerProps['onGenerateClick'],
   onAddonRunStateChange: ContainerProps['onAddonRunStateChange'],
   state: State
 ) => {
   useEffect(() => {
-    if (!isAddonInstalled) {
+    if (!isAddonInstalled()) {
       return;
     }
 
@@ -212,7 +221,7 @@ const useListenEndOfVideoUrlTransformByAddon = (
         .map((url) => ({ url: url.transformed, label: url.original }))
         .concat(localFiles);
 
-      if (!videos.length) {
+      if (!isGenerateExecutable(videos)) {
         return;
       }
 
@@ -224,7 +233,16 @@ const useListenEndOfVideoUrlTransformByAddon = (
     return function unbindListener() {
       document.removeEventListener(eventName, listener);
     };
-  }, [isAddonInstalled, onGenerateClick, onAddonRunStateChange, state]);
+  }, [onGenerateClick, onAddonRunStateChange, state]);
+};
+
+const useTriggerGenerateOnFirstRender = (setState: StateUpdater<State>) => {
+  useOneTimeEffect(async () => {
+    // 拡張機能がインストールされているかの変数は非同期で定義されるので，定義されているか一定期間の間待機する
+    //（一定期間待機しても変数定義がされていない場合もあるのでその点に留意
+    await wait(5, 50, isAddonInstalled);
+    setState((currentState) => ({ ...currentState, triggerClick: true }));
+  });
 };
 
 /* --------------------------------------------- */
