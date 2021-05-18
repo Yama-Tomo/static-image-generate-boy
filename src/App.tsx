@@ -76,7 +76,7 @@ const StyledUi = styled((props: UiProps) => (
 `;
 
 /* ----------------- Container ----------------- */
-type OnGenerateClickArgs = Parameters<FormProps['onGenerateClick']>[0];
+type OnGenerateClickArgs = Parameters<UiProps['onGenerateClick']>[0];
 type State = OnGenerateClickArgs & Pick<UiProps, 'isAddonRunning'>;
 
 const Container = (): h.JSX.Element => {
