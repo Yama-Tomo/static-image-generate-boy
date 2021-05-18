@@ -219,6 +219,14 @@ const Container = (props: ContainerProps): h.JSX.Element => {
     ...state,
     videoElementHandler: useCallback(
       (ele) => {
+        if (!ele) {
+          return;
+        }
+
+        ele.onloadeddata = () => {
+          ele.volume = 0;
+        };
+
         if (videoControl === 'play') {
           ele?.play();
         }
