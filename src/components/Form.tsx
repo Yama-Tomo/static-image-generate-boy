@@ -113,7 +113,7 @@ type OnGenerateClickArgs = Pick<UiProps, 'displayVertical'> & {
   videos: { url: string; label: string }[];
 };
 
-type ContainerProps = {
+type ContainerProps = Pick<UiProps, 'className'> & {
   onGenerateClick: (arg: OnGenerateClickArgs) => void;
   onAddonRunStateChange: (running: boolean) => void;
   defaultValues: {
@@ -145,6 +145,7 @@ const Container = (props: ContainerProps): h.JSX.Element => {
 
   const uiProps: UiProps = {
     ...state,
+    ...props,
     onUrlsChange: ({ currentTarget: { value: urls } }) => setState((v) => ({ ...v, urls })),
     onIntervalChange: ({ currentTarget: { value: interval } }) =>
       setState((v) => ({ ...v, interval })),
