@@ -228,10 +228,11 @@ const Container = (props: ContainerProps): h.JSX.Element => {
         };
 
         if (videoControl === 'play') {
-          ele?.play();
+          ele.play();
         }
+
         if (videoControl === 'pause') {
-          ele?.pause();
+          ele.pause();
         }
       },
       [videoControl]
