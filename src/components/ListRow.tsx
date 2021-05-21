@@ -13,6 +13,7 @@ type UiProps = {
   videoElementHandler: RefCallback<HTMLVideoElement>;
   width: number;
   isError: boolean;
+  customThumbnail?: string;
 };
 
 const Ui = forwardRef<HTMLVideoElement, UiProps>((props, ref) => (
@@ -23,6 +24,9 @@ const Ui = forwardRef<HTMLVideoElement, UiProps>((props, ref) => (
         <video ref={ref} />
       </div>
     </td>
+    {props.customThumbnail != null && (
+      <td className="img">{props.customThumbnail && <img src={props.customThumbnail} />}</td>
+    )}
     {props.isError ? (
       <td colSpan={props.frameLength + 1}>エラーが発生しました</td>
     ) : (
@@ -104,11 +108,13 @@ const StyledUi = styled(Ui)`
       text-align: center;
       background-color: #e4e4e4;
       > canvas,
-      video {
+      video,
+      img {
         vertical-align: middle;
       }
 
-      > video {
+      > video,
+      img {
         width: ${(p) => p.width}px;
       }
     }
@@ -135,7 +141,7 @@ type ContainerProps = {
   interval: number;
   videoUrl: string;
   videoControl: 'play' | 'pause';
-} & Pick<UiProps, 'width' | 'label'>;
+} & Pick<UiProps, 'width' | 'label' | 'customThumbnail'>;
 
 const Container = (props: ContainerProps): h.JSX.Element => {
   const [state, setState] = useState<Pick<UiProps, 'generatedImages' | 'isError'>>({
