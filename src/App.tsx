@@ -123,7 +123,9 @@ const parsedUrlParams = () => {
 
   const urls = (Array.isArray(parsedParams['u']) ? parsedParams['u'] : []).map(String);
   const commaSeparatedUrls =
-    typeof parsedParams['csu'] === 'string' ? parsedParams['csu'].split(',') : [];
+    typeof parsedParams['csu'] === 'string'
+      ? parsedParams['csu'].split(',').map((str) => str.trim())
+      : [];
   const width = parsedParams['w'] ? Number(parsedParams['w']) : 300;
   const interval = parsedParams['i'] ? Number(parsedParams['i']) : 1;
   const displayVertical = parsedParams['v'] === '1';
