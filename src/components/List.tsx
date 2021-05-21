@@ -7,7 +7,7 @@ import { ListRow, ListRowProps } from '~/components/ListRow';
 type UiProps = {
   className?: string;
   videos: { url: string; label: string }[];
-  progress?: number;
+  imageGenerateProgress?: number;
   isAddonRunning: boolean;
   frames: string[];
   displayVertical: boolean;
@@ -27,8 +27,10 @@ const Ui = (props: UiProps) => (
       )}
       <div className="status">
         {props.isAddonRunning && <span className="visible-delay">アドオン実行中...</span>}
-        {props.frames.length > 0 && props.progress != null && props.progress !== 100 && (
-          <span className="visible-delay">Processing... {props.progress.toFixed(0)} %</span>
+        {props.imageGenerateProgress != null && props.imageGenerateProgress !== 100 && (
+          <span className="visible-delay">
+            画像生成中... {props.imageGenerateProgress.toFixed(0)} %
+          </span>
         )}
       </div>
     </div>
@@ -206,7 +208,10 @@ const Container = (props: ContainerProps): h.JSX.Element => {
 
   const uiProps: UiProps = {
     ...state,
-    progress: state.videos.length > 0 ? (total / state.videos.length) * 100 : undefined,
+    imageGenerateProgress:
+      isAllVideoMetadataLoaded && state.videos.length > 0
+        ? (total / state.videos.length) * 100
+        : undefined,
     frames: Array.from({ length: frameLength }).map((_, idx) => {
       return `${((idx + 1) * props.interval).toFixed(1)} sec`;
     }),
