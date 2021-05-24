@@ -7,7 +7,7 @@ import { wait } from '~/libs';
 /* -------------------- DOM -------------------- */
 type UiProps = {
   className?: string;
-  urls: string;
+  remoteVideos: string;
   onUrlsChange: h.JSX.GenericEventHandler<HTMLTextAreaElement>;
   interval: string;
   onIntervalChange: h.JSX.GenericEventHandler<HTMLInputElement>;
@@ -25,7 +25,7 @@ const Ui = (props: UiProps) => (
       <textarea
         id="urls"
         placeholder="ここに動画のURLを入力（複数ある場合は改行区切り）"
-        value={props.urls}
+        value={props.remoteVideos}
         onChange={props.onUrlsChange}
       />
       <p>ローカルにある動画から生成する場合はここから選択してください</p>
@@ -102,22 +102,23 @@ const StyledUi = styled(Ui)`
 `;
 
 /* ----------------- Container ----------------- */
-type State = Pick<UiProps, 'urls' | 'interval' | 'width' | 'displayVertical'> & {
+type State = Pick<UiProps, 'remoteVideos' | 'interval' | 'width' | 'displayVertical'> & {
   localFiles: { url: string; label: string }[];
   triggerClick: boolean;
 };
 
+type VideoValue = { url: string; label: string; customThumbnail?: string };
 type OnGenerateClickArgs = Pick<UiProps, 'displayVertical'> & {
   width: number;
   interval: number;
-  videos: { url: string; label: string }[];
+  videos: VideoValue[];
 };
 
 type ContainerProps = Pick<UiProps, 'className'> & {
   onGenerateClick: (arg: OnGenerateClickArgs) => void;
   onAddonRunStateChange: (running: boolean) => void;
   defaultValues: {
-    urls: string[];
+    remoteVideos: string[];
     width: number;
     interval: number;
     displayVertical: boolean;
@@ -132,7 +133,7 @@ const addonEvents = {
 const Container = (props: ContainerProps): h.JSX.Element => {
   const { onGenerateClick, onAddonRunStateChange } = props;
   const [state, setState] = useState<State>({
-    urls: props.defaultValues.urls.join('\n'),
+    remoteVideos: props.defaultValues.remoteVideos.join('\n'),
     interval: String(props.defaultValues.interval),
     width: String(props.defaultValues.width),
     displayVertical: props.defaultValues.displayVertical,
@@ -146,7 +147,8 @@ const Container = (props: ContainerProps): h.JSX.Element => {
   const uiProps: UiProps = {
     ...state,
     ...props,
-    onUrlsChange: ({ currentTarget: { value: urls } }) => setState((v) => ({ ...v, urls })),
+    onUrlsChange: ({ currentTarget: { value: urls } }) =>
+      setState((v) => ({ ...v, remoteVideos: urls })),
     onIntervalChange: ({ currentTarget: { value: interval } }) =>
       setState((v) => ({ ...v, interval })),
     onWidthChange: ({ currentTarget: { value: width } }) => setState((v) => ({ ...v, width })),
@@ -154,18 +156,18 @@ const Container = (props: ContainerProps): h.JSX.Element => {
       setState((v) => ({ ...v, displayVertical: checked, triggerClick: true }));
     },
     onGenerateClick: () => {
-      const { urls, width, interval, localFiles, ...rest } = state;
-      const remoteUrls = urls.trim().split('\n').filter(Boolean);
+      const { remoteVideos, width, interval, localFiles, ...rest } = state;
+      const remoteVideoValues = createRemoteVideoValues(remoteVideos);
 
-      if (remoteUrls.length && isAddonInstalled()) {
+      if (remoteVideoValues.length && isAddonInstalled()) {
         onAddonRunStateChange(true);
 
-        const eventPayload = { detail: { urls: remoteUrls } };
+        const eventPayload = { detail: { urls: remoteVideoValues.map((v) => v.url) } };
         document.dispatchEvent(new CustomEvent(addonEvents.videoUrlTransformStart, eventPayload));
         return;
       }
 
-      const videos = remoteUrls.map((url) => ({ url, label: url })).concat(localFiles);
+      const videos = remoteVideoValues.concat(localFiles);
       if (!isGenerateExecutable(videos)) {
         return;
       }
@@ -199,7 +201,7 @@ const Container = (props: ContainerProps): h.JSX.Element => {
 };
 
 const isGenerateExecutable = (
-  urlsOrVideos: ContainerProps['defaultValues']['urls'] | OnGenerateClickArgs['videos']
+  urlsOrVideos: ContainerProps['defaultValues']['remoteVideos'] | OnGenerateClickArgs['videos']
 ) => urlsOrVideos.length > 0;
 
 const isAddonInstalled = () => !!window.staticImageGenerateBoyAddonInstalled;
@@ -216,9 +218,16 @@ const useListenEndOfVideoUrlTransformByAddon = (
 
     const eventName = addonEvents.videoUrlTransformEnd;
     const listener: (e: DocumentEventMap[typeof eventName]) => void = (e) => {
-      const { width, interval, localFiles, ...rest } = state;
+      const { width, interval, localFiles, remoteVideos, ...rest } = state;
+      const remoteVideoValues = createRemoteVideoValues(remoteVideos);
+
       const videos = e.detail.urls
-        .map((url) => ({ url: url.transformed, label: url.original }))
+        .map(
+          (url, idx): VideoValue => {
+            const { customThumbnail, label: customLabel } = remoteVideoValues[idx] || {};
+            return { url: url.transformed, label: customLabel || url.original, customThumbnail };
+          }
+        )
         .concat(localFiles);
 
       if (!isGenerateExecutable(videos)) {
@@ -243,6 +252,14 @@ const useTriggerGenerateOnFirstRender = (setState: StateUpdater<State>) => {
     await wait(5, 50, isAddonInstalled);
     setState((currentState) => ({ ...currentState, triggerClick: true }));
   });
+};
+
+const createRemoteVideoValues = (inputRemoteVideoValues: string) =>
+  inputRemoteVideoValues.trim().split('\n').filter(Boolean).map(createVideoValue);
+
+const createVideoValue = (remoteVideoValue: string): VideoValue => {
+  const [url, customThumbnail, label] = remoteVideoValue.split(';', 3);
+  return { url: url || '', label: label || '', customThumbnail };
 };
 
 /* --------------------------------------------- */

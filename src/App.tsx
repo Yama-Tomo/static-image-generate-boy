@@ -108,7 +108,7 @@ const Container = (): h.JSX.Element => {
     onAddonRunStateChange: (isAddonRunning) =>
       setState((currentState) => ({ ...currentState, isAddonRunning })),
     defaultValues: {
-      urls: params.urls,
+      remoteVideos: params.remoteVideos,
       width: params.width,
       interval: params.interval,
       displayVertical: params.displayVertical,
@@ -121,9 +121,11 @@ const Container = (): h.JSX.Element => {
 const parsedUrlParams = () => {
   const parsedParams = qs.parse(location.search, { ignoreQueryPrefix: true });
 
-  const urls = (Array.isArray(parsedParams['u']) ? parsedParams['u'] : []).map(String);
-  const commaSeparatedUrls =
-    typeof parsedParams['csu'] === 'string' ? parsedParams['csu'].split(',') : [];
+  const remoteVideos = (Array.isArray(parsedParams['u']) ? parsedParams['u'] : []).map(String);
+  const commaSeparatedRemoteVideos =
+    typeof parsedParams['csu'] === 'string'
+      ? parsedParams['csu'].split(',').map((str) => str.trim())
+      : [];
   const width = parsedParams['w'] ? Number(parsedParams['w']) : 300;
   const interval = parsedParams['i'] ? Number(parsedParams['i']) : 1;
   const displayVertical = parsedParams['v'] === '1';
@@ -131,7 +133,7 @@ const parsedUrlParams = () => {
   const noDisplayForm = parsedParams['noform'] === '1';
 
   return {
-    urls: urls.concat(commaSeparatedUrls),
+    remoteVideos: remoteVideos.concat(commaSeparatedRemoteVideos),
     width,
     interval,
     displayVertical,

@@ -6,12 +6,14 @@ import { ListRow, ListRowProps } from '~/components/ListRow';
 /* -------------------- DOM -------------------- */
 type UiProps = {
   className?: string;
-  videos: { url: string; label: string }[];
-  progress?: number;
+  videos: { url: string; label: string; customThumbnail?: string }[];
+  imageGenerateProgress?: number;
+  videoMetadataLoadProgress?: number;
   isAddonRunning: boolean;
   frames: string[];
   displayVertical: boolean;
   onVideoControlClick: () => void;
+  isShowCustomThumbnailCol: boolean;
 } & Pick<
   ListRowProps,
   'onVideoDurationLoaded' | 'onProgressUpdate' | 'interval' | 'width' | 'videoControl'
@@ -27,8 +29,15 @@ const Ui = (props: UiProps) => (
       )}
       <div className="status">
         {props.isAddonRunning && <span className="visible-delay">アドオン実行中...</span>}
-        {props.frames.length > 0 && props.progress != null && props.progress !== 100 && (
-          <span className="visible-delay">Processing... {props.progress.toFixed(0)} %</span>
+        {props.videoMetadataLoadProgress != null && props.videoMetadataLoadProgress !== 100 && (
+          <span className="visible-delay">
+            動画のメタデータを読み込み中... {props.videoMetadataLoadProgress.toFixed(0)} %
+          </span>
+        )}
+        {props.imageGenerateProgress != null && props.imageGenerateProgress !== 100 && (
+          <span className="visible-delay">
+            画像生成中... {props.imageGenerateProgress.toFixed(0)} %
+          </span>
         )}
       </div>
     </div>
@@ -36,6 +45,11 @@ const Ui = (props: UiProps) => (
       <table className={props.frames.length > 0 ? '' : 'hide'}>
         <tr className="header">
           <td />
+          {props.isShowCustomThumbnailCol && (
+            <td>
+              <span>サムネイル</span>
+            </td>
+          )}
           <td>
             <span>動画</span>
           </td>
@@ -57,6 +71,9 @@ const Ui = (props: UiProps) => (
               onProgressUpdate={props.onProgressUpdate}
               interval={props.interval}
               videoUrl={video.url}
+              customThumbnail={
+                props.isShowCustomThumbnailCol ? video.customThumbnail ?? '' : undefined
+              }
               label={video.label}
               width={props.width}
             />
@@ -206,7 +223,12 @@ const Container = (props: ContainerProps): h.JSX.Element => {
 
   const uiProps: UiProps = {
     ...state,
-    progress: state.videos.length > 0 ? (total / state.videos.length) * 100 : undefined,
+    imageGenerateProgress:
+      isAllVideoMetadataLoaded && state.videos.length > 0
+        ? (total / state.videos.length) * 100
+        : undefined,
+    videoMetadataLoadProgress:
+      state.videos.length > 0 ? (durations.length / state.videos.length) * 100 : undefined,
     frames: Array.from({ length: frameLength }).map((_, idx) => {
       return `${((idx + 1) * props.interval).toFixed(1)} sec`;
     }),
@@ -222,6 +244,7 @@ const Container = (props: ContainerProps): h.JSX.Element => {
         return { ...currentState, videoControl };
       });
     },
+    isShowCustomThumbnailCol: props.videos.some((video) => !!video.customThumbnail),
   };
 
   return <StyledUi {...uiProps} />;
