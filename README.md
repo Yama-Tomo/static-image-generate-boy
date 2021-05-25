@@ -20,6 +20,14 @@ https://angry-bell-86a4e9.netlify.app/
 
 # get started
 
+パッケージマネージャには pnpm が必要です．インストールしていない場合は以下のコマンドでインストールしてください
+
+```bash
+$ npm run install-pnpm
+```
+
+開発用のサーバ起動は以下のようにします
+
 ```bash
 $ pnpm dev
 ```

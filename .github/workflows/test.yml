@@ -15,7 +15,7 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: 14
-      - run: npm i -g pnpm@6.4.0
+      - run: npm run install-pnpm
       - run: pnpm i
       - run: pnpm lint -- --max-warnings=0
       - run: pnpm run-prettier -- -c
