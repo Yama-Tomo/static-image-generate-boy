@@ -257,7 +257,7 @@ const createRemoteVideoValues = (inputRemoteVideoValues: string) =>
 
 const createVideoValue = (remoteVideoValue: string): VideoValue => {
   const [url, customThumbnail, label] = remoteVideoValue.split(';', 3);
-  return { url: url || '', label: label || '', customThumbnail };
+  return { url: url || '', label: label || url, customThumbnail };
 };
 
 /* --------------------------------------------- */
