@@ -5,13 +5,13 @@
   "scripts": {
     "build": "FORCE_COLOR=true run-p -l build:*",
     "build:webpack": "NODE_ENV=production webpack",
-    "build:typecheck": "yarn typecheck",
+    "build:typecheck": "pnpm typecheck",
     "dev": "FORCE_COLOR=true run-p -l dev:*",
     "dev:webpack": "NODE_ENV=development webpack serve",
-    "dev:typecheck": "yarn typecheck --watch --pretty",
+    "dev:typecheck": "pnpm typecheck -- --watch --pretty",
     "lint": "eslint './**/*.{js,ts,tsx}' --format codeframe --color",
     "run-prettier": "prettier './**/*.{js,ts,tsx}'",
-    "format-code": "yarn run-prettier -w",
+    "format-code": "pnpm run-prettier -- -w",
     "typecheck": "tsc -p . --noEmit"
   },
   "devDependencies": {
@@ -42,6 +42,7 @@
     "react-dom": "preact-compat"
   },
   "engines": {
-    "node": "14"
+    "node": "14",
+    "pnpm": ">= 6.4.0"
   }
 }
