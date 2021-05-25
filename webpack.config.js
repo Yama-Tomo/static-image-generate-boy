@@ -17,12 +17,12 @@ module.exports = {
     ],
   },
   resolve: {
-    modules: ['node_modules', 'node_modules/.pnpm/node_modules'],
     extensions: ['.js', '.ts', '.tsx', '.json', '.mjs', '.wasm'],
     alias: {
       react: 'preact/compat',
       'react-dom': 'preact/compat',
       '~': path.resolve('./src'),
+      '@prefresh/core': path.resolve('node_modules/.pnpm/node_modules/@prefresh/core'),
     },
   },
   devServer: {
