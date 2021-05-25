@@ -222,12 +222,10 @@ const useListenEndOfVideoUrlTransformByAddon = (
       const remoteVideoValues = createRemoteVideoValues(remoteVideos);
 
       const videos = e.detail.urls
-        .map(
-          (url, idx): VideoValue => {
-            const { customThumbnail, label: customLabel } = remoteVideoValues[idx] || {};
-            return { url: url.transformed, label: customLabel || url.original, customThumbnail };
-          }
-        )
+        .map((url, idx): VideoValue => {
+          const { customThumbnail, label: customLabel } = remoteVideoValues[idx] || {};
+          return { url: url.transformed, label: customLabel || url.original, customThumbnail };
+        })
         .concat(localFiles);
 
       if (!isGenerateExecutable(videos)) {
