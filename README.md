@@ -21,5 +21,5 @@ https://angry-bell-86a4e9.netlify.app/
 # get started
 
 ```bash
-$ yarn dev
+$ pnpm dev
 ```

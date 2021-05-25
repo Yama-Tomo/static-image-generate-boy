@@ -17,6 +17,7 @@ module.exports = {
     ],
   },
   resolve: {
+    modules: ['node_modules', 'node_modules/.pnpm/node_modules'],
     extensions: ['.js', '.ts', '.tsx', '.json', '.mjs', '.wasm'],
     alias: {
       react: 'preact/compat',
