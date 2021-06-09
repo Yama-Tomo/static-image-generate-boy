@@ -1,6 +1,6 @@
 import { Fragment, h } from 'preact';
 import { useState, useCallback, useEffect } from 'preact/hooks';
-import styled from 'styled-components';
+import { styled } from 'goober';
 import { ListRow, ListRowProps } from '~/components/ListRow';
 
 /* -------------------- DOM -------------------- */

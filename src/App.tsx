@@ -1,5 +1,6 @@
 import { h, Fragment } from 'preact';
-import styled, { createGlobalStyle } from 'styled-components';
+import { styled } from 'goober';
+import { createGlobalStyles } from 'goober/global';
 import { Form, FormProps } from '~/components/Form';
 import { List, ListProps } from '~/components/List';
 import { useState } from 'preact/hooks';
@@ -45,7 +46,7 @@ const Ui = (props: UiProps): h.JSX.Element => (
 );
 
 /* ------------------- Style ------------------- */
-const GlobalStyle = createGlobalStyle`
+const GlobalStyle = createGlobalStyles`
  body {
    box-sizing: border-box;
    margin: 0rem;
