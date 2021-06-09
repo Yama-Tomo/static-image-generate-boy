@@ -1,6 +1,6 @@
 import { Fragment, h, RefCallback } from 'preact';
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
-import styled from 'styled-components';
+import { styled } from 'goober';
 import { forwardRef, memo } from 'preact/compat';
 
 /* -------------------- DOM -------------------- */
@@ -85,7 +85,7 @@ const Video = forwardRef<HTMLVideoElement, h.JSX.IntrinsicElements['video']>((pr
 ));
 
 /* ------------------- Style ------------------- */
-const StyledUi = styled(Ui)`
+const StyledUi = styled(Ui, forwardRef)`
   .video-wrap {
     position: absolute;
     height: 1px;

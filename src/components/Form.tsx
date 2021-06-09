@@ -1,6 +1,6 @@
 import { h } from 'preact';
 import { StateUpdater, useEffect, useState } from 'preact/hooks';
-import styled from 'styled-components';
+import { styled } from 'goober';
 import { useOneTimeEffect } from '~/hooks';
 import { wait } from '~/libs';
 
