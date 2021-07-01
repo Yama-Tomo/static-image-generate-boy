@@ -195,7 +195,7 @@ const Container = (props: ContainerProps): h.JSX.Element => {
     };
 
     videoRef.onseeked = () => {
-      onseeked();
+      setTimeout(onseeked, 0);
       // NOTE: 同時に画像生成するとブラウザがハングするのでランダム秒(100 ~ 150ms) 遅延させる
       //setTimeout(onseeked, Math.floor(Math.random() * 100) + 50);
     };
